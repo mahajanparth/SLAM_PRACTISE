@@ -1,0 +1,6 @@
+{"title": "1-D Factor Graph: virtual clone, deep copy, factory", "track": "cpp", "module": "M14", "order": 3,
+ "type": "code", "difficulty": "Medium", "target_min": 25, "tags": ["virtual", "clone", "rule of five", "factory", "unique_ptr"],
+ "hints": ["Each concrete factor implements `clone()` as `return std::make_unique<PriorFactor>(*this);`: the derived class knows its own type, the graph doesn't.",
+           "Copy constructor: reserve, then `for (const auto& f : other.factors_) factors_.push_back(f->clone());`.",
+           "Copy assignment: copy-and-swap. `FactorGraph tmp(other); std::swap(factors_, tmp.factors_); return *this;` is exception-safe and handles self-assignment.",
+           "parseFactor: read with std::istringstream; after reading the expected fields, `std::string extra; if (iss >> extra) return nullptr;`. Also reject sigma <= 0 and negative keys."]}

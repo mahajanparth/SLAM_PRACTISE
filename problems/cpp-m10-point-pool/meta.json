@@ -1,0 +1,6 @@
+{"title": "Point Pool Allocator with Stable Addresses", "track": "cpp", "module": "M10", "order": 3,
+ "type": "code", "difficulty": "Medium", "target_min": 30, "tags": ["allocator", "memory-pool", "free-list", "alignment", "pointer-stability"],
+ "hints": ["alignUp: for a power-of-two `a`, `(addr + a - 1) & ~(a - 1)`.",
+           "Never grow a block in place, because that would move points. Keep a list of fixed-size blocks (e.g. `std::vector<std::unique_ptr<Point3[]>>`) and allocate a NEW block when the last one is full.",
+           "Track how many slots of the LAST block are used. Earlier blocks are always full (freed slots go to the free list instead).",
+           "Free list: `std::vector<Point3*>`. deallocate pushes, and allocate pops from the back first (LIFO = cache-hot reuse)."]}

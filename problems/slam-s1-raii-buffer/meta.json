@@ -1,0 +1,6 @@
+{"title": "RAII FloatBuffer: Rule of Five", "track": "slam", "module": "S1", "order": 5,
+ "type": "code", "difficulty": "Medium", "target_min": 12, "tags": ["raii", "rule-of-5", "move-semantics", "noexcept"],
+ "hints": ["Copy-and-swap: write `swap()`, then `operator=(FloatBuffer other)` taking BY VALUE handles copy and move assignment, plus self-assignment, in one function.",
+           "The moved-from object must be valid and destructible: set its pointer to nullptr and size to 0 (`std::exchange` is handy).",
+           "Mark the move constructor, move assignment and swap `noexcept`, otherwise std::vector<FloatBuffer> copies on reallocation.",
+           "`new float[n]()` value-initializes (zeroes). Handle n == 0 (keep nullptr). delete[] on nullptr is a no-op."]}

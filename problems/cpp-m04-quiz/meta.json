@@ -1,0 +1,3 @@
+{"title": "Predict the Output: map, unordered_map, Hashing", "track": "cpp", "module": "M04", "order": 1,
+ "type": "quiz", "difficulty": "Easy", "target_min": 8, "tags": ["map", "unordered_map", "hashing", "lower_bound"],
+ "hints": ["`operator[]` inserts a default value when the key is missing.", "`std::map` is sorted by key, so it supports lower_bound/upper_bound range queries."]}

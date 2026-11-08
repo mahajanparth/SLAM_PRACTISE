@@ -1,0 +1,6 @@
+{"title": "In-place Cloud Filters: erase-remove, every Nth, dedup", "track": "cpp", "module": "M02", "order": 2,
+ "type": "code", "difficulty": "Easy", "target_min": 15, "tags": ["vector", "erase-remove", "iterators", "in-place"],
+ "hints": ["Calling `erase` inside a loop is O(n²) and easy to get wrong because it invalidates iterators. Use the erase-remove idiom: `v.erase(std::remove_if(v.begin(), v.end(), pred), v.end());`",
+           "removeEveryNth: run a write index `w` over the read index `i`. Keep element i if `(i + 1) % n != 0` and copy it to `v[w++]`. Finally `v.resize(w)`.",
+           "dedupConsecutive: reuse the write-index pattern and compare `cloud[i]` against `cloud[w-1]` (the last kept point). `std::unique` with a predicate is the library version, but \"within eps\" isn't an equivalence relation. Return `old_size - new_size`.",
+           "Watch out for n == 0 (modulo by zero is UB) and for comparing squared ranges against squared bounds."]}

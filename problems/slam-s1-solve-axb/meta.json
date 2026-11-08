@@ -1,0 +1,6 @@
+{"title": "Solve Ax = b Three Ways (+ Least Squares)", "track": "slam", "module": "S1", "order": 3,
+ "type": "code", "difficulty": "Easy", "target_min": 8, "tags": ["eigen", "linear-algebra", "llt", "qr", "svd", "least-squares"],
+ "hints": ["`A.llt()` returns an `Eigen::LLT<MatrixXd>`. Check `.info() == Eigen::Success` before trusting `.solve(b)`.",
+           "QR: `A.colPivHouseholderQr().solve(b)`. SVD: `A.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b)` (or `Eigen::JacobiSVD<MatrixXd> svd(A, ...)`).",
+           "Least squares: QR works directly on the tall matrix. Don't form AᵀA: it squares the condition number and the ill-conditioned hidden test will catch it.",
+           "SVD's solve already returns the minimum-norm solution for rank-deficient A (singular values below the threshold are treated as zero)."]}

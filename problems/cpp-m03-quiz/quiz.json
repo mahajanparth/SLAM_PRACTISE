@@ -1,0 +1,92 @@
+{
+ "questions": [
+  {
+   "prompt": "Output?\n```cpp\nvoid zero(std::array<double, 3> a) { a[0] = 0; }\n\nstd::array<double, 3> v = {1, 2, 3};\nzero(v);\nstd::cout << v[0] << \" \" << sizeof(v);\n```",
+   "options": [
+    "0 24",
+    "1 24",
+    "1 8",
+    "0 8"
+   ],
+   "answer": 1,
+   "explanation": "`std::array` is a value type that wraps `double[3]`. Passing it by value **copies** all 24 bytes, so `v` is unchanged. It never decays to a pointer, so `sizeof` is 3×8 = 24. A raw `double v[3]` parameter decays to `double*`, and there the write *would* hit the caller's data."
+  },
+  {
+   "prompt": "Output?\n```cpp\nstd::array<int, 4> a;\nstd::array<int, 4> b{};\nstd::cout << b[3];\n```\nAnd what is `a[3]`?",
+   "options": [
+    "0; a[3] is also 0",
+    "Garbage for both",
+    "Compile error: no size",
+    "0; a[3] is indeterminate (reading it is UB)"
+   ],
+   "answer": 3,
+   "explanation": "`std::array` is an aggregate with no constructor. A default-initialised local leaves `int`s indeterminate, just like a C array. `{}` value-initialises everything to 0. Always write `std::array<double,3> v{};`."
+  },
+  {
+   "prompt": "Which is true about `std::deque<ImuSample> d` after `d.push_back(s)`?",
+   "options": [
+    "All iterators AND references are invalidated",
+    "Iterators are invalidated, but references/pointers to existing elements stay valid",
+    "Nothing is invalidated",
+    "Only `end()` is invalidated, like vector without reallocation"
+   ],
+   "answer": 1,
+   "explanation": "A deque is a map of fixed-size blocks. Pushing at either end may reallocate the *map* (so iterators break) but never moves existing elements (so references survive). Inserting in the **middle** invalidates both. `pop_front`/`pop_back` invalidate only the erased element (plus end())."
+  },
+  {
+   "prompt": "You need a FIFO of the last 2 s of IMU samples: push at the back, pop at the front, occasional random access. Best default?",
+   "options": [
+    "`std::vector` + `erase(begin())`",
+    "`std::list`",
+    "`std::deque`",
+    "`std::forward_list`"
+   ],
+   "answer": 2,
+   "explanation": "`deque` has O(1) at both ends plus random access, and decent locality (contiguous blocks). `vector::erase(begin())` is O(n). `std::list` costs one heap allocation and two pointers per node and has terrible cache behaviour. A fixed-capacity ring buffer is the other common answer."
+  },
+  {
+   "prompt": "Output?\n```cpp\nstd::pair<int, double> p{1, 2.5};\nauto [id, w] = p;\nw = 9.0;\nauto& [rid, rw] = p;\nrw = 7.0;\nstd::cout << p.second;\n```",
+   "options": [
+    "2.5",
+    "9",
+    "Compile error",
+    "7"
+   ],
+   "answer": 3,
+   "explanation": "`auto [id, w] = p;` binds names to a hidden **copy** of `p`, so `w = 9` doesn't touch `p`. `auto& [rid, rw] = p;` binds to `p` itself, so `rw = 7` changes `p.second`. The same rule applies in loops: `for (auto& [k, v] : map)`."
+  },
+  {
+   "prompt": "When is `std::list` genuinely the right choice?",
+   "options": [
+    "When you need stable iterators/references and O(1) splice/insert/erase at known positions (e.g. an LRU cache list)",
+    "Whenever you insert a lot",
+    "When you need random access",
+    "Never, it's deprecated"
+   ],
+   "answer": 0,
+   "explanation": "`list` wins only when **iterator stability** and O(1) splice matter: an LRU list paired with an `unordered_map` of iterators, for example. For bulk insertion, `vector` usually wins anyway because of cache locality, even with O(n) shifts."
+  },
+  {
+   "prompt": "Output?\n```cpp\nauto t = std::make_tuple(3, 1.5, std::string(\"imu\"));\nstd::cout << std::get<2>(t).size() << std::tuple_size_v<decltype(t)>;\n```",
+   "options": [
+    "32",
+    "33",
+    "Compile error: get needs a type",
+    "13"
+   ],
+   "answer": 1,
+   "explanation": "`std::get<2>` is the string \"imu\" (size 3). `tuple_size_v` is 3. Indices to `std::get` must be compile-time constants. `std::get<std::string>(t)` also works because the type is unique in the tuple."
+  },
+  {
+   "prompt": "Comparing pairs: what is `std::make_pair(1, 9.0) < std::make_pair(2, 0.0)`?",
+   "options": [
+    "false, because 9.0 > 0.0",
+    "Compile error",
+    "true, because comparison is lexicographic: first 1 < 2 decides",
+    "Implementation-defined"
+   ],
+   "answer": 2,
+   "explanation": "`pair` and `tuple` compare **lexicographically**: first by `.first`, then by `.second` only on a tie. That's why `(timestamp, id)` tuples sort by time and break ties by id, and why `std::tie(a.t, a.id) < std::tie(b.t, b.id)` is the idiomatic way to write a comparator."
+  }
+ ]
+}

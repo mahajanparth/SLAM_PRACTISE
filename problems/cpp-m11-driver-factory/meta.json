@@ -1,0 +1,6 @@
+{"title": "Sensor Driver Factory: unique_ptr, custom deleters", "track": "cpp", "module": "M11", "order": 2,
+ "type": "code", "difficulty": "Easy", "target_min": 20, "tags": ["unique_ptr", "shared_ptr", "custom-deleter", "factory", "ownership"],
+ "hints": ["makeDriver: `if (kind == \"lidar\") return std::make_unique<LidarDriver>();`. A unique_ptr<Derived> converts to unique_ptr<Driver> implicitly.",
+           "takeFastest: find the index with std::max_element, `auto out = std::move(ds[i]);`, then erase that (now null) slot.",
+           "DeviceCloser::operator() just calls dev_close(h). unique_ptr never calls the deleter for nullptr.",
+           "openShared: `std::shared_ptr<DeviceHandle>(h, dev_close)`. The deleter is type-erased into the control block, so it's not part of the type."]}

@@ -1,0 +1,6 @@
+{"title": "Two-View Triangulation: DLT, Midpoint, Cheirality", "track": "slam", "module": "S8", "order": 4,
+ "type": "code", "difficulty": "Medium", "target_min": 15, "tags": ["triangulation", "svd", "dlt", "multi-view"],
+ "hints": ["Write the projection as λ·[x;1] = P·[X;1] with P = [R|t] (3×4). The cross product with [x;1] eliminates λ.",
+           "Each view contributes two rows: x·P.row(2) − P.row(0) and y·P.row(2) − P.row(1). Stack them into a 4×4 A.",
+           "Solve A·X̃ = 0: X̃ = last column of V from JacobiSVD(A, ComputeFullV), then X = X̃.head<3>() / X̃(3).",
+           "Midpoint: centers C = −Rᵀt, directions d = Rᵀ[x;1]. Minimize |C1 + s·d1 − C2 − u·d2|² (a 2×2 linear system) and average the two closest points."]}

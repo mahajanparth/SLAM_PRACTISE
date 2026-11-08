@@ -1,0 +1,5 @@
+{"title": "Euler ZYX (yaw-pitch-roll) and Gimbal Lock", "track": "slam", "module": "S2", "order": 4,
+ "type": "code", "difficulty": "Easy", "target_min": 8, "tags": ["euler-angles", "gimbal-lock", "atan2"],
+ "hints": ["Multiply out Rz(ψ)·Ry(θ)·Rx(φ) symbolically. The first column is (cψcθ, sψcθ, −sθ), and the last row is (−sθ, cθsφ, cθcφ).",
+           "yaw = atan2(R10, R00), roll = atan2(R21, R22), pitch = atan2(−R20, √(R00² + R10²)). Prefer atan2 over asin: there's no clamping issue and it has full precision.",
+           "At gimbal lock (cθ ≈ 0) the first column and last row vanish. Set roll = 0 and read yaw from the 2×2 block: yaw = atan2(−R01, R11) works for both pitch = +90° and −90°."]}

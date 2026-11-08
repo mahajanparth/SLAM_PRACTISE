@@ -1,0 +1,3 @@
+{"title": "Predict the Output: vtables, slicing, virtual dtor", "track": "cpp", "module": "M14", "order": 1,
+ "type": "quiz", "difficulty": "Easy", "target_min": 8, "tags": ["virtual", "slicing", "vtable", "override"],
+ "hints": ["Which calls go through the vtable, and which are bound from the static type?", "Copying a Derived into a Base object copies only the Base part, vptr included."]}

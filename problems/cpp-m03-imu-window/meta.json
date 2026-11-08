@@ -1,0 +1,6 @@
+{"title": "IMU Sliding Window with std::deque", "track": "cpp", "module": "M03", "order": 3,
+ "type": "code", "difficulty": "Medium", "target_min": 25, "tags": ["deque", "sliding window", "running sum", "pair", "array"],
+ "hints": ["`std::deque` gives O(1) `push_back` **and** `pop_front`. Doing `erase(begin())` on a `std::vector` is O(n).",
+           "push: reject if `!buf_.empty() && s.t < buf_.back().t`. Then push_back, and `while (buf_.front().t < s.t - window_) pop_front();`.",
+           "Keep running sums `sum_[3]`: add on push, subtract on pop. meanGyro is then `sum_[i] / buf_.size()`. Guard against empty.",
+           "between(): deque iterators are random access, so `std::lower_bound` with a `(const ImuSample&, double)` comparator finds t0 in O(log n). Then walk forward while `t <= t1`."]}

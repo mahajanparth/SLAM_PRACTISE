@@ -1,0 +1,6 @@
+{"title": "Kabsch / Umeyama: closed-form alignment", "track": "slam", "module": "S6", "order": 2,
+ "type": "code", "difficulty": "Medium", "target_min": 15, "tags": ["kabsch", "umeyama", "svd", "procrustes", "registration"],
+ "hints": ["Centre both sets: p̃ = p − p̄, q̃ = q − q̄. The optimal translation is t = q̄ − R p̄ (NOT q̄ − p̄).",
+           "H = Σ p̃ q̃ᵀ (3×3). `Eigen::JacobiSVD<Eigen::Matrix3d> svd(H, Eigen::ComputeFullU | Eigen::ComputeFullV);` then R = V Uᵀ.",
+           "Reflection: if det(V Uᵀ) < 0, use R = V · diag(1, 1, det(V Uᵀ)) · Uᵀ. This matters for planar or noisy data.",
+           "Umeyama scale: s = trace(diag(σ) · D) / Σ|p̃|², and t = q̄ − s R p̄."]}

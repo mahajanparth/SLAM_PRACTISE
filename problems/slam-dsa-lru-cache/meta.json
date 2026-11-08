@@ -1,0 +1,6 @@
+{"title": "LRU Cache for Map Tiles", "track": "slam", "module": "DSA", "order": 5,
+ "type": "code", "difficulty": "Medium", "target_min": 15, "tags": ["std::list", "unordered_map", "splice", "O(1)", "templates"],
+ "hints": ["You need O(1) lookup (hash map) AND O(1) reordering (doubly linked list).",
+           "Keep `std::list<std::pair<Key, Value>> items_` with the most recent at the front, and `std::unordered_map<Key, typename std::list<...>::iterator> index_`.",
+           "On a hit, `items_.splice(items_.begin(), items_, it)` moves the node to the front in O(1) without invalidating any iterator.",
+           "put on a full cache: the victim is `items_.back()`. Erase its key from `index_` FIRST (you need the key), then `pop_back()`."]}

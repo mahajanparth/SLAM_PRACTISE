@@ -1,0 +1,6 @@
+{"title": "Fixed-size 3x3 Math with std::array, pair & structured bindings", "track": "cpp", "module": "M03", "order": 2,
+ "type": "code", "difficulty": "Easy", "target_min": 15, "tags": ["std::array", "pair", "tuple", "structured bindings"],
+ "hints": ["`Mat3 C{};` value-initialises every entry to 0. A bare `Mat3 C;` holds garbage doubles, just like a C array.",
+           "matmul: `C[i][j] += A[i][k] * B[k][j]` over k. Copying `std::array` is a value copy, so `matmul(A, A)` aliasing is fine if you accumulate into a fresh local `C`.",
+           "det: expand along the first row (rule of Sarrus / cofactors).",
+           "normalize: `return {Vec3{x/n, y/n, z/n}, n};` builds the pair. Return `{Vec3{}, 0.0}` when n is 0. Callers write `auto [u, n] = normalize(v);`. For minMaxEntry, return `std::make_tuple(...)`."]}

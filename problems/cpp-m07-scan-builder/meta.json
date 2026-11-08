@@ -1,0 +1,6 @@
+{"title": "LidarScan Builder: sink parameters, ref-qualified build(), RVO", "track": "cpp", "module": "M07", "order": 3,
+ "type": "code", "difficulty": "Medium", "target_min": 25, "tags": ["move semantics", "sink parameters", "ref-qualifiers", "RVO", "method chaining"],
+ "hints": ["Chaining works when each setter returns `*this` as `ScanBuilder&`.",
+           "Sink parameter idiom: take `std::string id` **by value**, then `frame_ = std::move(id);`. Lvalue callers pay one copy and rvalue callers pay only moves.",
+           "Overload on the object's value category: `LidarScan build() const&` copies the members, `LidarScan build() &&` moves them out (`std::move(ranges_)`).",
+           "`clampRanges(std::vector<double> r, ...)`: modify `r` in place and `return r;`. A by-value parameter is implicitly moved on return, so the caller's buffer survives a `std::move` all the way through."]}

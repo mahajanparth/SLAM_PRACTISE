@@ -1,0 +1,6 @@
+{"title": "Deep-Copyable Keyframe with a Polymorphic unique_ptr Member", "track": "cpp", "module": "M15", "order": 3,
+ "type": "code", "difficulty": "Medium", "target_min": 30, "tags": ["rule-of-five", "rule-of-zero", "clone", "unique_ptr", "noexcept"],
+ "hints": ["A `std::unique_ptr` member makes the implicit copy ctor deleted. You must write the copy operations yourself, calling `desc_->clone()` (a null desc stays null).",
+           "Writing a copy ctor SUPPRESSES the implicit move operations, so `std::move(kf)` would silently call your copy (and clone). Bring them back with `Keyframe(Keyframe&&) noexcept = default;` and the same for move assignment.",
+           "Copy assignment: copy-and-swap (`Keyframe tmp(o); swap(*this, tmp);`) is self-assignment safe and strongly exception-safe.",
+           "Don't declare a destructor: the members already clean up (rule of zero for everything except copying)."]}

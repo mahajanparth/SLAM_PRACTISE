@@ -1,0 +1,6 @@
+{"title": "RAII Handle for a C Lidar SDK", "track": "cpp", "module": "M10", "order": 2,
+ "type": "code", "difficulty": "Easy", "target_min": 20, "tags": ["raii", "move-semantics", "exception-safety", "c-interop"],
+ "hints": ["The destructor is just `c_lidar_close(h_);` (the SDK accepts null). Copying must stay deleted, or two handles would close the same device.",
+           "Move constructor: steal the pointer and null the source: `h_(std::exchange(o.h_, nullptr))`. Mark it noexcept.",
+           "Move assignment: `if (this != &o) { reset(o.release()); }`, which closes what you held first. reset(p) must be a no-op if p == h_.",
+           "openAll: push each opened handle into a local std::vector<LidarHandle>. If a later open throws, unwinding destroys the vector, which closes the earlier handles for you."]}

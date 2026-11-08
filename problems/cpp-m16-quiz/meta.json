@@ -1,0 +1,3 @@
+{"title": "Predict the Output: deduction, specialization, SFINAE", "track": "cpp", "module": "M16", "order": 1,
+ "type": "quiz", "difficulty": "Easy", "target_min": 8, "tags": ["templates", "deduction", "specialization", "SFINAE"],
+ "hints": ["During deduction there are no implicit conversions; each argument must deduce the same T.", "Overload resolution happens first; a full specialization only replaces the body of the primary template it belongs to."]}

@@ -1,0 +1,5 @@
+{"title": "Pinhole Projection with Radial-Tangential Distortion", "track": "slam", "module": "S8", "order": 3,
+ "type": "code", "difficulty": "Easy", "target_min": 10, "tags": ["camera", "projection", "distortion"],
+ "hints": ["Order: normalize (X/Z, Y/Z), distort in normalized coordinates, then apply fx, fy, cx, cy.",
+           "radial = 1 + k1 r² + k2 r⁴; tangential dx = 2 p1 x y + p2 (r² + 2x²), dy = p1 (r² + 2y²) + 2 p2 x y.",
+           "Reject Z ≤ min_depth BEFORE dividing; otherwise points behind the camera project to mirrored, valid-looking pixels."]}

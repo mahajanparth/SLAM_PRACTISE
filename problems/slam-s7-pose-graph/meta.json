@@ -1,0 +1,6 @@
+{"title": "2D Pose Graph Optimization (Gauss-Newton, SE2)", "track": "slam", "module": "S7", "order": 5,
+ "type": "code", "difficulty": "Hard", "target_min": 25, "tags": ["pose-graph", "gauss-newton", "se2", "loop-closure", "gauge"],
+ "hints": ["Residual: e = [R_zᵀ(R_iᵀ(t_j − t_i) − t_z) ; wrap(θ_j − θ_i − θ_z)]. Wrap the angle. Without it, the loop closure at ±π explodes.",
+           "Jacobians (Grisetti tutorial): A = ∂e/∂x_i = [[−R_zᵀR_iᵀ, R_zᵀ (dR_iᵀ/dθ_i)(t_j − t_i)], [0 0, −1]], B = ∂e/∂x_j = [[R_zᵀR_iᵀ, 0], [0 0, 1]].",
+           "Dense H (3N×3N) and b. Per edge: H_ii += AᵀΩA, H_ij += AᵀΩB, H_ji += BᵀΩA, H_jj += BᵀΩB, b_i += AᵀΩe, b_j += BᵀΩe. Solve HΔ = −b.",
+           "Gauge: solve only for poses 1..N−1, i.e. H.bottomRightCorner(3N−3, 3N−3).ldlt().solve(−b.tail(3N−3)). Apply Δ, wrap θ, stop when ‖Δ‖ < 1e-9."]}

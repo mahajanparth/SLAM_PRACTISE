@@ -1,0 +1,6 @@
+{"title": "Filter Dispatch Table: function & member pointers", "track": "cpp", "module": "M08", "order": 2,
+ "type": "code", "difficulty": "Easy", "target_min": 15, "tags": ["function-pointers", "std::function", "member-pointers", "dispatch-table"],
+ "hints": ["applyN: guard against a null pointer first (`if (!f)`). Calling a null function pointer is UB.",
+           "sumField: `total += p.*field;`",
+           "makeFilter: build a `static const std::map<std::string, PointPredicate (*)(double)>` whose values are capture-less lambdas (they convert to function pointers). Each one returns a lambda capturing `param` by value.",
+           "applyPipeline: skip empty stages with `if (!stage) continue;`, and use std::all_of over the remaining stages for each point."]}

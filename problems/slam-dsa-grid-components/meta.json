@@ -1,0 +1,6 @@
+{"title": "Connected Free-Space Regions in an Occupancy Grid", "track": "slam", "module": "DSA", "order": 7,
+ "type": "code", "difficulty": "Easy", "target_min": 10, "tags": ["BFS", "flood fill", "grid", "connected components"],
+ "hints": ["Scan cells in row-major order. Each free cell that is still unlabelled starts a new region: give it the next label and flood-fill from it.",
+           "Use an explicit `std::queue<std::pair<int,int>>` (BFS), not recursion. A 1000×1000 free map would recurse 10⁶ deep and overflow the stack.",
+           "Label a cell when you PUSH it, not when you pop it, otherwise the same cell enters the queue several times.",
+           "4-neighbours: `const int dr[4] = {1,-1,0,0}, dc[4] = {0,0,1,-1};` and bounds-check before indexing."]}

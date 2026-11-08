@@ -1,0 +1,3 @@
+{"title": "Predict the Output: data races, locks, condition variables", "track": "cpp", "module": "M18", "order": 1,
+ "type": "quiz", "difficulty": "Medium", "target_min": 8, "tags": ["thread", "mutex", "atomic", "condition_variable", "data race"],
+ "hints": ["Unsynchronized concurrent read-modify-write is a data race, which is undefined behaviour, not just a wrong value.", "A condition variable wait must re-check a predicate under the mutex."]}

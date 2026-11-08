@@ -1,0 +1,3 @@
+{"title": "Predict the Output: Function Pointers, std::function, Member Pointers", "track": "cpp", "module": "M08", "order": 1,
+ "type": "quiz", "difficulty": "Easy", "target_min": 7, "tags": ["function-pointers", "std::function", "member-pointers", "callbacks"],
+ "hints": ["Read `R (*name)(Args...)` from the name outwards.", "An empty std::function throws std::bad_function_call when called."]}

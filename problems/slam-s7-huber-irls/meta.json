@@ -1,0 +1,6 @@
+{"title": "Robust Line Fit: Huber IRLS with Outliers", "track": "slam", "module": "S7", "order": 4,
+ "type": "code", "difficulty": "Medium", "target_min": 12, "tags": ["robust-kernel", "huber", "irls", "mad", "least-squares"],
+ "hints": ["Residual rᵢ = yᵢ − (m xᵢ + c), Jacobian row (xᵢ, 1) up to sign. Weighted normal equations: (Σ wᵢ JᵢJᵢᵀ) θ = Σ wᵢ Jᵢ yᵢ, which is a 2×2 system.",
+           "Huber weight: w = 1 if |r| ≤ k, else k/|r|. Start from the plain LS fit (all w = 1), then alternate: compute residuals → weights → re-solve.",
+           "MAD: median of |rᵢ − median(r)|, times 1.4826. std::nth_element finds a median in O(n). For even n, average the two middle values.",
+           "Degenerate check: the determinant of the 2×2 weighted system (or 'all x equal') ⇒ return (0,0)."]}

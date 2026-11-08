@@ -1,0 +1,92 @@
+{
+ "questions": [
+  {
+   "prompt": "Output?\n```cpp\nstd::priority_queue<int> pq;\nfor (int x : {3, 1, 4, 1, 5}) pq.push(x);\npq.pop();\nstd::cout << pq.top();\n```",
+   "options": [
+    "1",
+    "3",
+    "4",
+    "5"
+   ],
+   "answer": 2,
+   "explanation": "The default comparator is `std::less`, which makes a **max-heap**, so `top()` is the largest element. The first `pop()` removes 5, leaving 4 on top. Both push and pop are O(log n) on a binary heap stored in a `std::vector`."
+  },
+  {
+   "prompt": "You want the event with the **earliest** timestamp on top. Which comparator is correct?\n```cpp\nstruct Event { double t; int id; };\nstd::priority_queue<Event, std::vector<Event>, decltype(cmp)> q(cmp);\n```",
+   "options": [
+    "`auto cmp = [](const Event& a, const Event& b) { return a.t < b.t; };`",
+    "`auto cmp = [](const Event& a, const Event& b) { return a.t > b.t; };`",
+    "`auto cmp = [](const Event& a, const Event& b) { return a.t <= b.t; };`",
+    "Either A or B: the queue sorts itself"
+   ],
+   "answer": 1,
+   "explanation": "The comparator says when `a` has **lower priority** than `b`, and the element no other element beats sits on top. With `a.t > b.t`, later events have lower priority, so the earliest is on top (a min-heap). (C) is not a strict weak ordering (`cmp(a,a)` is true), which is UB."
+  },
+  {
+   "prompt": "What is wrong with this comparator?\n```cpp\nstd::sort(pts.begin(), pts.end(),\n          [](const Pt& a, const Pt& b) { return a.range <= b.range; });\n```",
+   "options": [
+    "Nothing, it sorts ascending",
+    "Sorts descending",
+    "Compile error: comparator must be a function pointer",
+    "Violates strict weak ordering: `cmp(a,a)` is true. UB, and `std::sort` can read out of bounds with many equal keys"
+   ],
+   "answer": 3,
+   "explanation": "Comparators must be **irreflexive**: `cmp(a, a)` must be false. With `<=`, equal elements compare true both ways. libstdc++'s unguarded insertion sort relies on that guarantee and can run past the end of the range, which is a real ASan heap-buffer-overflow when many ranges are equal. Use `<`."
+  },
+  {
+   "prompt": "Which hash is the worst for 2-D grid cells `(x, y)` with small coordinates around the robot?",
+   "options": [
+    "`h(x) ^ h(y)`",
+    "`h(x) * 73856093 ^ h(y) * 19349663`",
+    "`h(x) ^ (h(y) + 0x9e3779b9 + (h(x) << 6) + (h(x) >> 2))`",
+    "`std::hash<long long>{}((long long)x << 32 | (uint32_t)y)`"
+   ],
+   "answer": 0,
+   "explanation": "With libstdc++, `std::hash<int>` is the identity. Then `x ^ y` maps `(a,b)` and `(b,a)` to the same value, maps every `(k,k)` to 0, and squeezes a 100x100 neighbourhood into 128 distinct values, so buckets degenerate and lookups approach O(n). (B) uses the Teschner spatial-hash primes, (C) is boost's `hash_combine`, and (D) packs both coordinates losslessly into 64 bits."
+  },
+  {
+   "prompt": "Does this compile?\n```cpp\nstruct Cell { int x, y; };\nstruct CellHash { std::size_t operator()(const Cell& c) const { return c.x * 31 + c.y; } };\nstd::unordered_map<Cell, int, CellHash> hits;\nhits[{1, 2}]++;\n```",
+   "options": [
+    "Yes",
+    "No: the hash must be `noexcept`",
+    "No: `Cell` has no `operator==` (and no KeyEqual was given)",
+    "No: `operator[]` doesn't work with custom hashes"
+   ],
+   "answer": 2,
+   "explanation": "An unordered container needs **both** a hash and an equality test, because a bucket can hold several keys. The default `KeyEqual` is `std::equal_to<Cell>`, which needs `operator==`. Add `bool operator==(const Cell&) const` or pass a 4th template argument. `noexcept` is recommended but not required."
+  },
+  {
+   "prompt": "Lazy Dijkstra: why is this check needed?\n```cpp\nauto [d, u] = pq.top(); pq.pop();\nif (d > dist[u]) continue;   // <-- this line\n```",
+   "options": [
+    "`std::priority_queue` has no decrease-key, so outdated duplicate entries for `u` must be skipped",
+    "To handle negative edges",
+    "To avoid integer overflow",
+    "It isn't needed; it is only an optimization for A*"
+   ],
+   "answer": 0,
+   "explanation": "Rather than updating a key in place, we push a new `(newDist, v)` each time `v` improves, so the heap can hold several entries for one node. The stale ones have `d > dist[u]`. Skipping them keeps the run time at O(E log E). Without the check, the result is still correct for non-negative weights, but you re-relax edges needlessly. Negative edges break Dijkstra either way."
+  },
+  {
+   "prompt": "Output?\n```cpp\nstd::unordered_map<std::string, int> ids;\nif (ids[\"lidar\"] == 0) std::cout << \"missing \";\nstd::cout << ids.size();\n```",
+   "options": [
+    "missing 0",
+    "0",
+    "Throws std::out_of_range",
+    "missing 1"
+   ],
+   "answer": 3,
+   "explanation": "`operator[]` **inserts** a value-initialized element (0) when the key is missing, so the lookup itself grew the map. Use `find`, `count`, or `contains` (C++20) to check for a key, and `at()` to throw on a missing key. `operator[]` also doesn't compile on a `const` map for this reason."
+  },
+  {
+   "prompt": "Top-k closest points out of n = 10⁶, k = 10. Which is the best fit?",
+   "options": [
+    "`std::sort` everything, take the first k: O(n log n)",
+    "Bounded max-heap of size k: O(n log k), O(k) memory",
+    "A min-heap of all n points, pop k times: O(n log n) to build",
+    "`std::set` of all points: O(n log n)"
+   ],
+   "answer": 1,
+   "explanation": "Keep the k best so far in a **max**-heap, so `top()` is the worst of them, and replace it whenever a closer point appears. That is O(n log k), roughly n × 3.3 comparisons for k = 10, and it streams. `std::nth_element` + sort of the first k (O(n + k log k)) is also excellent when everything fits in memory. Pushing all n points into a min-heap with `make_heap` is O(n + k log n), which is fine but uses O(n) extra memory."
+  }
+ ]
+}

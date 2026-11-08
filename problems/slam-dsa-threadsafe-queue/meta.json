@@ -1,0 +1,6 @@
+{"title": "Thread-Safe Queue with Shutdown (lidar → odometry)", "track": "slam", "module": "DSA", "order": 3,
+ "type": "code", "difficulty": "Medium", "target_min": 12, "tags": ["mutex", "condition_variable", "producer-consumer", "std::optional"],
+ "hints": ["Members: `std::mutex m_; std::condition_variable cv_; std::deque<T> q_; bool shutdown_ = false;`",
+           "pop: `std::unique_lock lk(m_); cv_.wait(lk, [&]{ return shutdown_ || !q_.empty(); });` The predicate handles spurious wakeups.",
+           "After the wait: if `q_` is empty it must be because of shutdown, so return `std::nullopt`; otherwise move out the front.",
+           "shutdown() sets the flag under the lock, then `cv_.notify_all()` so EVERY blocked consumer wakes up. push uses notify_one."]}

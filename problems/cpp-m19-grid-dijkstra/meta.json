@@ -1,0 +1,6 @@
+{"title": "Hashed Occupancy Grid + Dijkstra Planner", "track": "cpp", "module": "M19", "order": 3,
+ "type": "code", "difficulty": "Medium", "target_min": 35, "tags": ["custom hash", "unordered_map", "priority_queue", "dijkstra"],
+ "hints": ["toCell: `static_cast<int>(std::floor(x / res))`. Plain truncation is wrong for negative coordinates.",
+           "CellHash: mix the two ints so that (a,b) and (b,a) differ, e.g. pack into 64 bits: `(uint64_t(uint32_t(c.x)) << 32) | uint32_t(c.y)` and hash that, or use hash_combine.",
+           "Dijkstra: `std::unordered_map<Cell,double,CellHash> dist;` and a min-heap of `std::pair<double, Cell>` with a lambda comparing `.first` with `>`. Skip stale entries: `if (d > dist[u]) continue;`.",
+           "Neighbours: loop dx, dy in {-1,0,1} (skip 0,0); step cost = (dx && dy) ? sqrt(2) : 1. Skip cells outside [lo, hi] or with occ hits >= min_hits."]}

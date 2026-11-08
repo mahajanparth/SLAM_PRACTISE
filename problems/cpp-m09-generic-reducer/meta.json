@@ -1,0 +1,6 @@
+{"title": "Generic Lambdas: compose, allOf, groupReduce, running mean", "track": "cpp", "module": "M09", "order": 3,
+ "type": "code", "difficulty": "Medium", "target_min": 25, "tags": ["generic-lambdas", "fold-expressions", "init-capture", "mutable", "templates"],
+ "hints": ["compose: capture f and g by value (they may be temporaries) and return `[f, g](auto&& x) { return g(f(std::forward<decltype(x)>(x))); }`.",
+           "allOf: capture the pack by value, `[=](const auto& x) { ... }`, and use a C++17 fold `(preds(x) && ...)`. An empty && fold is `true`.",
+           "groupReduce: `auto& acc = out.try_emplace(key(item), init).first->second; acc = op(acc, item);`.",
+           "makeRunningMean: `[n = 0, mean = 0.0](double x) mutable { ++n; mean += (x - mean) / n; return mean; }`, an incremental mean with no growing sum."]}

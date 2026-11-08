@@ -1,0 +1,6 @@
+{"title": "Sensor Config Parser: string_view + optional", "track": "cpp", "module": "M17", "order": 2,
+ "type": "code", "difficulty": "Easy", "target_min": 25, "tags": ["string_view", "optional", "from_chars", "structured bindings"],
+ "hints": ["split: loop with `std::size_t pos = s.find(delim)`; push `s.substr(0, pos)` and `s.remove_prefix(pos + 1)`. Remember the last token after the final delimiter.",
+           "trim: `find_first_not_of(\" \\t\")` / `find_last_not_of`; return an empty view if all whitespace. No allocation.",
+           "parseDouble: `auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), out);` succeed only if `ec == std::errc()` and `ptr == s.data() + s.size()`.",
+           "parseSensor: keep a `std::optional<...>` per field; a duplicate key means that optional is already engaged → nullopt. At the end, all four must be engaged."]}

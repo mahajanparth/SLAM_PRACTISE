@@ -1,0 +1,6 @@
+{"title": "KD-Tree: build, nearest, radius search", "track": "slam", "module": "S5", "order": 2,
+ "type": "code", "difficulty": "Hard", "target_min": 25, "tags": ["kd-tree", "nearest-neighbour", "nth_element", "recursion"],
+ "hints": ["Don't move points around: sort an index array `idx_` and let every node own a range [begin, end) of it.",
+           "Split axis = depth % 3 (or the axis with the largest spread). Median in O(n) with `std::nth_element` on the index range, comparing `pts_[i][axis]`.",
+           "Store nodes in a flat `std::vector<Node>` with child indices; stop splitting when a range has ≤ ~8 points (leaf bucket).",
+           "Search: recurse into the child on q's side first; visit the far child only if `diff*diff < best_d2` where `diff = q[axis] - split` (use `<=` and r² for radius search)."]}

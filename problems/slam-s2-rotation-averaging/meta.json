@@ -1,0 +1,6 @@
+{"title": "Rotation Averaging", "track": "slam", "module": "S2", "order": 7,
+ "type": "code", "difficulty": "Hard", "target_min": 15, "tags": ["quaternion", "averaging", "eigen-decomposition", "karcher-mean"],
+ "hints": ["Averaging the 4 components directly fails because q and −q are the same rotation: half your inputs can cancel the other half.",
+           "Quick fix for small spread: flip each q_i so that q_i·q_0 ≥ 0, then sum and normalize. It's still not sign-invariant if q_0 is an outlier.",
+           "Markley's method: build the 4×4 matrix M = Σ w_i q_i q_iᵀ (sign-invariant!). The mean is the eigenvector of the LARGEST eigenvalue. SelfAdjointEigenSolver sorts ascending, so take the last column.",
+           "Alternative: Karcher mean. Start at q_0 and iterate R ← R·exp(mean_i log(Rᵀ R_i)) until the update is tiny."]}

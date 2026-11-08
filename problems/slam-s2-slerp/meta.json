@@ -1,0 +1,5 @@
+{"title": "Quaternion Slerp", "track": "slam", "module": "S2", "order": 5,
+ "type": "code", "difficulty": "Medium", "target_min": 10, "tags": ["quaternion", "slerp", "interpolation", "deskew"],
+ "hints": ["d = a·b (4D dot of coeffs). If d < 0, negate b: q and −q are the same rotation, and this picks the shortest path.",
+           "Ω = acos(d). Result = (sin((1−t)Ω) a + sin(tΩ) b) / sin Ω.",
+           "When d ≈ 1, sin Ω ≈ 0. Fall back to nlerp: normalize((1−t) a + t b). Clamp d to ≤ 1 before acos."]}

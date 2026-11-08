@@ -1,0 +1,6 @@
+{"title": "Point-to-Point ICP", "track": "slam", "module": "S6", "order": 3,
+ "type": "code", "difficulty": "Hard", "target_min": 20, "tags": ["icp", "registration", "kabsch", "nearest-neighbour"],
+ "hints": ["Loop: transform src by the CURRENT estimate T → find each point's nearest target (brute force is fine here) → drop pairs farther than max_corr_dist → Kabsch on the pairs → T = ΔT * T.",
+           "Kabsch: centre both sets, H = Σ p̃ q̃ᵀ, SVD, R = V diag(1,1,det(VUᵀ)) Uᵀ, t = q̄ − R p̄.",
+           "Compare squared distances in the NN loop and gate with `d2 <= max_corr_dist * max_corr_dist` (inf*inf is still inf).",
+           "Stop early when ΔT is tiny (rotation angle and translation < ~1e-10), or when fewer than 3 pairs survive. Return `init` if src or tgt is empty or max_iters == 0."]}

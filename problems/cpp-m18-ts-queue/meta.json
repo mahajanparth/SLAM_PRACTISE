@@ -1,0 +1,6 @@
+{"title": "Thread-Safe Sensor Queue with close() and drop-oldest", "track": "cpp", "module": "M18", "order": 3,
+ "type": "code", "difficulty": "Medium", "target_min": 35, "tags": ["condition_variable", "mutex", "producer-consumer", "shutdown", "optional"],
+ "hints": ["Members: `mutable std::mutex m_; std::condition_variable cv_; std::deque<T> q_; bool closed_ = false; std::size_t dropped_ = 0, cap_;`.",
+           "push: under the lock, return false if closed; if `cap_ > 0 && q_.size() == cap_`, pop_front and ++dropped_; push_back(std::move(v)). Unlock, then `cv_.notify_one()`.",
+           "pop: `std::unique_lock lk(m_); cv_.wait(lk, [&] { return !q_.empty() || closed_; }); if (q_.empty()) return std::nullopt;` then move the front out.",
+           "popFor: same with `cv_.wait_for(lk, timeout, pred)`; it returns the predicate's value. close(): set the flag under the lock, then `cv_.notify_all()` so EVERY blocked consumer wakes."]}

@@ -1,0 +1,6 @@
+{"title": "Point Utilities: range, scale, closest, path length", "track": "cpp", "module": "M01", "order": 2,
+ "type": "code", "difficulty": "Easy", "target_min": 12, "tags": ["const", "references", "pointers", "size_t"],
+ "hints": ["Range: std::sqrt(x*x + y*y + z*z). Avoid std::pow for squares.",
+           "scaleInPlace: `for (auto& p : cloud)` — the & is essential.",
+           "findClosest: compare SQUARED distances; keep a `const Point3*` initialised to nullptr.",
+           "pathLength: loop i from 1 to size() so you never compute size()-1 on an empty vector."]}

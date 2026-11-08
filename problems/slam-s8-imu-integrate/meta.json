@@ -1,0 +1,5 @@
+{"title": "IMU Strapdown Integration (R, v, p)", "track": "slam", "module": "S8", "order": 7,
+ "type": "code", "difficulty": "Hard", "target_min": 15, "tags": ["imu", "so3", "integration", "vio"],
+ "hints": ["Rodrigues: θ = |φ|, K = [φ/θ]×, Exp(φ) = I + sinθ K + (1−cosθ) K². For θ < 1e-8 use I + [φ]×.",
+           "The accelerometer measures specific force, so world acceleration is a_w = R·(a_m − b_a) + g with g = (0,0,−9.81). A level IMU at rest reads +9.81 on z.",
+           "Use the OLD R and v: p += v·dt + ½·a_w·dt²; v += a_w·dt; THEN R = R·Exp((ω_m − b_g)·dt). Right-multiply because the gyro is in the body frame."]}

@@ -1,0 +1,3 @@
+{"title": "Predict the Output: References, Pointers, auto", "track": "cpp", "module": "M01", "order": 1,
+ "type": "quiz", "difficulty": "Easy", "target_min": 6, "tags": ["references", "auto", "lifetime"],
+ "hints": ["Which vector operations can reallocate the buffer?", "`auto` drops top-level const and references; `auto&` keeps const."]}

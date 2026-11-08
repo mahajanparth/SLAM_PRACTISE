@@ -1,0 +1,92 @@
+{
+ "questions": [
+  {
+   "prompt": "RANSAC plane fit (sample size $s=3$). You expect an inlier ratio $w=0.5$ and want success probability $p=0.99$. Using $N = \\frac{\\log(1-p)}{\\log(1-w^s)}$, how many iterations do you need?",
+   "options": [
+    "9",
+    "35",
+    "70",
+    "588"
+   ],
+   "answer": 1,
+   "explanation": "$w^3 = 0.125$, so $N = \\log(0.01)/\\log(0.875) = -4.605/-0.1335 \\approx 34.5$, rounded up to **35**. The formula comes from requiring that the probability of *never* drawing an all-inlier sample, $(1-w^s)^N$, is at most $1-p$. Note how fast it grows with $s$ and with $1/w$: at $w=0.3$ you need ~169. Adaptive RANSAC recomputes $N$ from the best inlier ratio found so far."
+  },
+  {
+   "prompt": "Spot the bug in this KD-tree nearest-neighbour recursion:\n```cpp\nvoid search(int node, const Vector3d& q, int& best, double& best_d2) {\n  // ... leaf handling ...\n  double diff = q[n.axis] - n.split;\n  int near = diff < 0 ? n.left : n.right;\n  int far  = diff < 0 ? n.right : n.left;\n  search(near, q, best, best_d2);\n  if (std::abs(diff) < best_d2) search(far, q, best, best_d2);\n}\n```",
+   "options": [
+    "Should visit the far child first",
+    "`diff < 0` should be `diff <= 0`, otherwise points on the plane are lost",
+    "It compares a distance with a *squared* distance, so it can prune a subtree that contains the true nearest neighbour",
+    "No bug"
+   ],
+   "answer": 2,
+   "explanation": "`best_d2` is squared but `|diff|` is not. Example: best distance 0.6 (`best_d2 = 0.36`) and `|diff| = 0.5`. The test `0.5 < 0.36` is false, so the far side is **skipped**, even though a point at distance 0.5–0.6 may be there. That's a **wrong answer**. In the opposite regime (distances > 1) it only visits too much, which is slow but correct. Always compare `diff * diff < best_d2` (and `<= r*r` for radius search). The `<` vs `<=` in the near/far choice doesn't affect correctness when the pruning test is right."
+  },
+  {
+   "prompt": "A lidar odometry system keeps a *local map* that receives ~10k new points every scan and drops points behind the robot. It needs approximate radius / NN queries for ICP. Which structure fits best?",
+   "options": [
+    "Static KD-tree rebuilt from scratch every scan",
+    "Sorted `std::vector` with binary search on x",
+    "Brute force, because the map is small",
+    "Voxel hash map (`unordered_map<VoxelKey, points>`)"
+   ],
+   "answer": 3,
+   "explanation": "A voxel hash gives O(1) insertion and deletion per point and O(27·k) neighbourhood queries, and it bounds memory by keeping at most N points per voxel. That's what KISS-ICP does. A KD-tree has the best exact-NN queries on a *static* set but must be rebuilt (O(N log N)) or use an incremental variant (ikd-tree in FAST-LIO2). An octree suits multi-resolution or occupancy queries and ray casting (OctoMap)."
+  },
+  {
+   "prompt": "Why fit a plane with RANSAC instead of plain least squares when 30% of the points are clutter?",
+   "options": [
+    "Least squares has a breakdown point of 0%: a single far outlier can pull the solution arbitrarily far",
+    "Least squares is too slow for 10k points",
+    "RANSAC gives a more accurate estimate on pure inlier data",
+    "Least squares can't fit planes, only lines"
+   ],
+   "answer": 0,
+   "explanation": "Squared loss gives an outlier at distance $D$ influence $\\propto D$, so one gross outlier can tilt the plane arbitrarily (breakdown point 0). RANSAC's score is *bounded*: each point counts as 0 or 1, so clutter only costs iterations. Best practice combines them: RANSAC finds the consensus set, then least squares (PCA) refits on the inliers for accuracy."
+  },
+  {
+   "prompt": "You compute the covariance $C$ of a point patch and `Eigen::SelfAdjointEigenSolver<Matrix3d> es(C);`. Which is the least-squares plane normal?",
+   "options": [
+    "`es.eigenvectors().col(2)`",
+    "`es.eigenvectors().row(0)`",
+    "`es.eigenvectors().col(0)`",
+    "`es.eigenvalues().normalized()`"
+   ],
+   "answer": 2,
+   "explanation": "`SelfAdjointEigenSolver` sorts eigenvalues **ascending**, and the eigenvectors are the *columns*. The normal is the direction of least variance, `col(0)`. `col(2)` (largest variance) is the best-fit **line** direction. $\\lambda_0/(\\lambda_0+\\lambda_1+\\lambda_2)$ is the 'surface variation' (curvature) used to classify planar vs edge points, as in LOAM-style features."
+  },
+  {
+   "prompt": "Why do KD-trees lose their advantage in high dimensions (e.g. 128-D SIFT descriptors)?",
+   "options": [
+    "`nth_element` becomes O(n²)",
+    "The tree depth grows linearly with d",
+    "Floating-point error accumulates",
+    "Pruning almost never succeeds: the query ball crosses most splitting planes, so the search visits nearly every leaf"
+   ],
+   "answer": 3,
+   "explanation": "Curse of dimensionality: distances concentrate, and a tree of depth log₂N splits each axis only ~log₂N / d times. The hypersphere around the query intersects almost every cell, so exact search degrades towards brute force unless N ≫ 2^d. That's why descriptor matching uses *approximate* methods (randomized KD-forests, hierarchical k-means in FLANN, HNSW, product quantization)."
+  },
+  {
+   "prompt": "Union-find with **both** path compression and union by rank: what's the amortised cost per `find`/`unite`?",
+   "options": [
+    "O(1) worst case",
+    "O(α(n)), the inverse Ackermann function, ≤ 4 for any practical n",
+    "O(log n)",
+    "O(√n)"
+   ],
+   "answer": 1,
+   "explanation": "Tarjan's bound: O(α(n)) amortised, effectively constant. With only one of the two optimisations it's O(log n). Without either, a chain of unions can produce O(n) deep trees. For Euclidean clustering the neighbour search (voxel hash / KD-tree) dominates, not the union-find."
+  },
+  {
+   "prompt": "Algebraic sphere fit: expand $\\lVert p - c\\rVert^2 = r^2$. Which unknown vector makes the problem **linear**?",
+   "options": [
+    "$(c, r)$",
+    "$(c, r^2)$",
+    "$(c,\\; r^2 - \\lVert c\\rVert^2)$",
+    "It can't be made linear; you need Gauss-Newton"
+   ],
+   "answer": 2,
+   "explanation": "$\\lVert p\\rVert^2 - 2c\\cdot p + \\lVert c\\rVert^2 = r^2 \\Rightarrow \\lVert p\\rVert^2 = 2c\\cdot p + k$ with $k = r^2 - \\lVert c\\rVert^2$. Each point gives the row $[2p^\\top, 1]\\,[c; k] = \\lVert p\\rVert^2$, so one QR solve does it, and $r = \\sqrt{k + \\lVert c\\rVert^2}$. It minimises an *algebraic* residual, not the geometric distance, so refine with a few GN steps if accuracy matters."
+  }
+ ]
+}

@@ -1,0 +1,19 @@
+{
+ "title": "Warmup: Eigen Types, const, move, Storage Order",
+ "track": "slam",
+ "module": "S1",
+ "order": 1,
+ "type": "quiz",
+ "difficulty": "Easy",
+ "target_min": 6,
+ "tags": [
+  "eigen",
+  "const",
+  "move",
+  "memory-layout"
+ ],
+ "hints": [
+  "Think about where the data lives: stack (fixed size) or heap (dynamic).",
+  "`std::move` is only a cast. Something else does the moving."
+ ]
+}

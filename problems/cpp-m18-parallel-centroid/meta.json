@@ -1,0 +1,6 @@
+{"title": "Parallel Cloud Reductions: thread, atomic, mutex", "track": "cpp", "module": "M18", "order": 2,
+ "type": "code", "difficulty": "Easy", "target_min": 20, "tags": ["std::thread", "join", "atomic", "mutex", "lock_guard"],
+ "hints": ["Chunking: T = clamp(num_threads, 1, n). Thread t handles [t*n/T, (t+1)*n/T). Using size_t math gives contiguous, balanced chunks that cover everything.",
+           "Centroid: give each thread its own slot `partial[t]` (no sharing while running), join all threads, then sum the partials on the main thread.",
+           "Capture the loop index by value: `workers.emplace_back([&, t] { ... });`. Counting: count locally inside the thread, then do ONE `total.fetch_add(local)` at the end.",
+           "HitCounter: `std::lock_guard<std::mutex> lk(m_);` in every member, including the const ones (so the mutex is `mutable`)."]}

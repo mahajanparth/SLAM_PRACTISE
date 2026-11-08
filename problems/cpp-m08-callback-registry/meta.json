@@ -1,0 +1,6 @@
+{"title": "IMU Callback Registry: subscribe, unsubscribe, re-entrant publish", "track": "cpp", "module": "M08", "order": 3,
+ "type": "code", "difficulty": "Medium", "target_min": 30, "tags": ["std::function", "callbacks", "member-pointers", "reentrancy", "iterator-invalidation"],
+ "hints": ["A `std::map<int, Callback>` keyed by a monotonically increasing id is already in subscription order, and erase-by-id is O(log n).",
+           "subscribeMember: wrap it in a lambda `[obj, method](const ImuSample& s) { (obj->*method)(s); }` and forward to subscribe().",
+           "Re-entrancy: if a callback erases entries while you iterate the map, your iterator may dangle. Snapshot the ids first, then for each id look it up again (it may have been removed).",
+           "Even the callback that's *currently running* can unsubscribe itself, which destroys the std::function you're executing. Invoke a local COPY of the callback."]}

@@ -1,0 +1,3 @@
+{"title": "Warm-up: Spatial Search & Robust Fitting", "track": "slam", "module": "S5", "order": 1,
+ "type": "quiz", "difficulty": "Easy", "target_min": 7, "tags": ["kd-tree", "ransac", "octree", "voxel-hash", "union-find"],
+ "hints": ["RANSAC: the probability that one sample is all-inlier is w^s.", "KD-tree pruning compares the squared distance to the splitting plane with the squared best distance."]}

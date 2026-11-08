@@ -1,0 +1,3 @@
+{"title": "Predict the Output: <algorithm> & <numeric>", "track": "cpp", "module": "M06", "order": 1,
+ "type": "quiz", "difficulty": "Easy", "target_min": 8, "tags": ["sort", "lower_bound", "nth_element", "accumulate", "transform"],
+ "hints": ["The type of accumulate's init value is the type of the sum.", "Binary-search algorithms assume sorted input and never check it."]}

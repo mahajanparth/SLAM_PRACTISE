@@ -1,0 +1,92 @@
+{
+ "questions": [
+  {
+   "prompt": "Which overload is called by each line?\n```cpp\nvoid f(const Cloud&) { std::cout << \"L\"; }\nvoid f(Cloud&&)      { std::cout << \"R\"; }\n\nCloud c(10);\nf(c);\nf(Cloud(5));\nf(std::move(c));\n```",
+   "options": [
+    "LLL",
+    "LRR",
+    "LRL",
+    "RRR"
+   ],
+   "answer": 1,
+   "explanation": "`c` is an lvalue, so it binds to `const Cloud&`. `Cloud(5)` is a prvalue and `std::move(c)` is an xvalue, and both prefer `Cloud&&`. `std::move` only casts. It does not move anything until a move constructor or assignment actually runs."
+  },
+  {
+   "prompt": "What prints?\n```cpp\nvoid g(const Cloud&) { std::cout << \"L\"; }\nvoid g(Cloud&&)      { std::cout << \"R\"; }\nvoid h(Cloud&& c)     { g(c); }\n\nh(Cloud(3));\n```",
+   "options": [
+    "R",
+    "Nothing, because the temporary is gone",
+    "Compile error: ambiguous",
+    "L"
+   ],
+   "answer": 3,
+   "explanation": "**A named rvalue reference is an lvalue.** Inside `h`, `c` has a name, so `g(c)` picks the `const&` overload. To pass on the rvalue-ness, write `g(std::move(c))`, or `std::forward<T>(c)` in templates."
+  },
+  {
+   "prompt": "Which call fails to compile?\n```cpp\nvoid scale(Cloud& c, double s);\nCloud load();\n\nCloud a = load();\nscale(a, 2.0);          // (A)\nscale(load(), 2.0);     // (B)\nconst Cloud& r = load();// (C)\nscale(a, 2);            // (D)\n```",
+   "options": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "answer": 1,
+   "explanation": "A non-const lvalue reference cannot bind to a temporary, so (B) fails. The language stops you from modifying something that's about to vanish. (C) is legal because a `const&` to a prvalue **extends its lifetime** to the reference's scope. (D) converts the int 2 to a double."
+  },
+  {
+   "prompt": "How many times is `Cloud`'s copy constructor called? (C++17, with optimisations off)\n```cpp\nCloud makeCloud(int n) {\n  Cloud c(n);\n  return c;\n}\nCloud a = makeCloud(1000);\n```",
+   "options": [
+    "2",
+    "1",
+    "0: NRVO, or else a move",
+    "Depends on n"
+   ],
+   "answer": 2,
+   "explanation": "`return c;` of a local is either elided (NRVO) or treated as an rvalue, which means a **move**. It never copies. Returning containers by value is idiomatic and cheap. `return std::move(c);` is actually *worse* because it disables NRVO."
+  },
+  {
+   "prompt": "Spot the bug:\n```cpp\nconst Point3& closest(const Cloud& c, const Point3& q) {\n  Point3 best = c[0];\n  for (const auto& p : c) if (d2(p, q) < d2(best, q)) best = p;\n  return best;\n}\n```",
+   "options": [
+    "None",
+    "`c[0]` should be `c.at(0)`",
+    "Should take `Cloud` by value",
+    "Returns a reference to a local, which dangles"
+   ],
+   "answer": 3,
+   "explanation": "`best` is a local, so the returned reference dangles once the function returns (GCC warns with `-Wreturn-local-addr`). Return `Point3` by value (24 B, cheap), or return `const Point3*` / an index into `c`. Calling `c[0]` on an empty cloud is a second bug, but a lesser one."
+  },
+  {
+   "prompt": "Default arguments. What prints?\n```cpp\nvoid voxel(double size = 0.1, int min_pts = 3) {\n  std::cout << size << \" \" << min_pts;\n}\nvoxel(5);\n```",
+   "options": [
+    "5 3",
+    "0.1 5",
+    "Compile error: int to double",
+    "Ambiguous"
+   ],
+   "answer": 0,
+   "explanation": "Arguments fill parameters **left to right**, and you can't skip `size` to set `min_pts`. The int 5 converts to `double 5`. This is why many APIs take a params struct (`VoxelParams p; p.min_pts = 5;`) instead of long default-argument lists."
+  },
+  {
+   "prompt": "Which signature is the best default for a function that **stores** a copy of a string into a member, given that callers pass both lvalues and temporaries?",
+   "options": [
+    "`void setFrame(std::string& id)`",
+    "`void setFrame(std::string id)` followed by `frame_ = std::move(id);`",
+    "`void setFrame(const char* id)`",
+    "`void setFrame(std::string&& id)` only"
+   ],
+   "answer": 1,
+   "explanation": "The **sink parameter** idiom: lvalue callers pay one copy plus one move, and rvalue callers pay two moves. It's close to optimal with a single overload. `std::string&` rejects temporaries. `&&` alone rejects lvalues. `const std::string&` + copy would always copy."
+  },
+  {
+   "prompt": "Overload resolution. What prints?\n```cpp\nvoid log(int)    { std::cout << \"int\"; }\nvoid log(double) { std::cout << \"double\"; }\nlog(3.0f);\n```",
+   "options": [
+    "int",
+    "Ambiguous: compile error",
+    "double",
+    "float is narrowed, so UB"
+   ],
+   "answer": 2,
+   "explanation": "`float` → `double` is a **floating-point promotion**, which ranks above the float → int *conversion*. So `log(double)` wins. By contrast, `log(3L)` (long) would be ambiguous because long → int and long → double are both conversions."
+  }
+ ]
+}

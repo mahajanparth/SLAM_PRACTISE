@@ -1,0 +1,5 @@
+{"title": "Templates: lerp and interpolateAt", "track": "slam", "module": "S1", "order": 7,
+ "type": "code", "difficulty": "Easy", "target_min": 6, "tags": ["templates", "lower_bound", "interpolation", "eigen"],
+ "hints": ["lerp only needs `T - T`, `T * double` and `T + T`: `a + (b - a) * t` works for double and Eigen vectors. Return a `T` so Eigen expressions get evaluated.",
+           "Clamp first: t <= samples.front().first -> front value, t >= samples.back().first -> back value.",
+           "`std::lower_bound(begin, end, t, [](const auto& s, double t) { return s.first < t; })` gives the first sample with time >= t. The bracketing pair is (it-1, it)."]}

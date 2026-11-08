@@ -1,0 +1,6 @@
+{"title": "Sphere Fit: algebraic least squares + RANSAC", "track": "slam", "module": "S5", "order": 6,
+ "type": "code", "difficulty": "Medium", "target_min": 12, "tags": ["least-squares", "sphere", "ransac", "qr"],
+ "hints": ["Expand |p - c|² = r²  →  |p|² = 2 c·p + (r² - |c|²). With k = r² - |c|², this is LINEAR in the unknowns (c, k).",
+           "Stack rows [2pᵀ, 1] x = |p|² into an N×4 system and solve with `colPivHouseholderQr()`; check `rank() == 4` (coplanar points → rank 3). Then r = sqrt(k + |c|²).",
+           "Conditioning: subtract the centroid first, fit, then add it back to the centre.",
+           "RANSAC: sample 4 distinct points, fit, score |‖p−c‖ − r| ≤ thresh, keep the best, refit on its inliers and recompute them."]}

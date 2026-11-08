@@ -1,0 +1,3 @@
+{"title": "Predict the Output: Parameter Passing, Overloads, RVO", "track": "cpp", "module": "M07", "order": 1,
+ "type": "quiz", "difficulty": "Easy", "target_min": 8, "tags": ["parameter passing", "overloading", "default arguments", "RVO"],
+ "hints": ["A named rvalue reference is an lvalue.", "Overload resolution prefers exact match over a conversion; a non-const lvalue reference cannot bind to a temporary."]}

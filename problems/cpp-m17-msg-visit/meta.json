@@ -1,0 +1,6 @@
+{"title": "Sensor Message Bus: std::variant + std::visit", "track": "cpp", "module": "M17", "order": 3,
+ "type": "code", "difficulty": "Medium", "target_min": 30, "tags": ["variant", "visit", "if constexpr", "optional", "stable_sort"],
+ "hints": ["stampOf: every alternative has `.stamp`, so one generic lambda works: `std::visit([](const auto& m) { return m.stamp; }, msg)`.",
+           "extract<T>: `if (const T* p = std::get_if<T>(&m)) out.push_back(*p);`.",
+           "process: one visit with `[&](const auto& m) { using T = std::decay_t<decltype(m)>; if constexpr (std::is_same_v<T, LidarMsg>) {...} else if constexpr ... }`. Keep `std::optional<double> last_imu_stamp` for the integration.",
+           "sortByStamp: `std::stable_sort(msgs.begin(), msgs.end(), [](const Msg& a, const Msg& b) { return stampOf(a) < stampOf(b); });` (stable keeps arrival order for ties)."]}

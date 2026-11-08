@@ -1,0 +1,3 @@
+{"title": "Predict the Output: unique_ptr, shared_ptr, weak_ptr, Cycles", "track": "cpp", "module": "M11", "order": 1,
+ "type": "quiz", "difficulty": "Easy", "target_min": 8, "tags": ["unique_ptr", "shared_ptr", "weak_ptr", "cycles", "ownership"],
+ "hints": ["Count the owners: copies of a shared_ptr increment use_count, moves don't, and weak_ptr never does.", "Two shared_ptrs pointing at each other keep each other alive forever."]}

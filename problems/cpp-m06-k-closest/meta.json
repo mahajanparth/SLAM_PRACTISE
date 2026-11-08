@@ -1,0 +1,6 @@
+{"title": "Cloud Queries with <algorithm>: centroid, stable sort, k-closest", "track": "cpp", "module": "M06", "order": 2,
+ "type": "code", "difficulty": "Easy", "target_min": 20, "tags": ["accumulate", "stable_sort", "nth_element", "count_if", "iota"],
+ "hints": ["centroid: `std::accumulate(c.begin(), c.end(), Point3{0,0,0}, [](Point3 s, const Point3& p){ ... return s; })`. Watch the init type: an `int` 0 init would accumulate as int.",
+           "sortByRange: `std::stable_sort` with a comparator on **squared** range keeps the original order of equal ranges. Plain `std::sort` doesn't.",
+           "kClosest: `std::vector<std::size_t> idx(n); std::iota(idx.begin(), idx.end(), 0);`. Precompute the squared distances, then compare `(d2[a], a) < (d2[b], b)` so ties break by index.",
+           "`std::nth_element(idx.begin(), idx.begin() + k, idx.end(), cmp)` puts the k smallest in front in O(n). Then `std::sort` just those k and `resize(k)`. Clamp k to n first."]}

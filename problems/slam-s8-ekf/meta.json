@@ -1,0 +1,6 @@
+{"title": "EKF Localization with Range-Bearing Landmarks", "track": "slam", "module": "S8", "order": 2,
+ "type": "code", "difficulty": "Hard", "target_min": 25, "tags": ["ekf", "jacobians", "angle-wrap", "covariance"],
+ "hints": ["Predict: write f(x,u) for the unicycle, then F = ∂f/∂x. Only the θ column is non-trivial: (−v·dt·sinθ, v·dt·cosθ, 1).",
+           "Measurement: d = m − p, q = dᵀd, h = (√q, atan2(d_y,d_x) − θ). H = [[−dx/√q, −dy/√q, 0], [dy/q, −dx/q, −1]].",
+           "Wrap the bearing innovation and the final θ with atan2(sin a, cos a). This is the classic hidden-test failure.",
+           "Use the Joseph form P = (I−KH)P(I−KH)ᵀ + KRKᵀ and then P = ½(P+Pᵀ) so P stays symmetric PD."]}

@@ -1,0 +1,92 @@
+{
+ "questions": [
+  {
+   "prompt": "What is wrong?\n```cpp\nstd::string_view frameId(const SensorConfig& c) {\n  std::string id = c.prefix + \"/\" + c.name;\n  return id;\n}\n```",
+   "options": [
+    "Nothing; string_view copies the characters",
+    "Returns a view into a destroyed local string: dangling (heap-use-after-free)",
+    "Compile error: no conversion from string to string_view",
+    "It leaks `id`"
+   ],
+   "answer": 1,
+   "explanation": "`std::string_view` is just a pointer and a length. `id` is destroyed when the function returns, so the view points at freed memory. Return `std::string` when you build a new string. Return `string_view` only when it points into something that outlives the call (a member, a literal, or the caller's buffer)."
+  },
+  {
+   "prompt": "Output?\n```cpp\nstd::optional<double> rate;\nstd::cout << rate.value_or(10.0) << \" \";\nrate = 0.0;\nif (rate) std::cout << \"set\"; else std::cout << \"unset\";\n```",
+   "options": [
+    "10 unset",
+    "0 unset",
+    "Throws bad_optional_access",
+    "10 set"
+   ],
+   "answer": 3,
+   "explanation": "An empty optional gives the fallback from `value_or`. After `rate = 0.0`, the optional is *engaged*, and `if (rate)` tests **has_value()**, not the stored value. Compare against the contained value explicitly (`if (rate && *rate > 0)`), because this confusion is easy to make with `optional<bool>` and `optional<int>`."
+  },
+  {
+   "prompt": "Which alternative does `v` hold?\n```cpp\nstd::variant<std::string, bool> v = \"lidar_front\";\n```",
+   "options": [
+    "bool",
+    "std::string",
+    "Compile error: ambiguous",
+    "valueless_by_exception"
+   ],
+   "answer": 0,
+   "explanation": "In C++17, `const char*` → `bool` is a *standard* conversion, while `const char*` → `std::string` is a *user-defined* one, so overload resolution picks `bool` (true). C++20 (P0608) fixed this by forbidding narrowing to bool. Write `std::string(\"lidar_front\")` or use `using namespace std::string_literals; \"...\"s`."
+  },
+  {
+   "prompt": "Output?\n```cpp\nstd::map<std::string, int> hits = {{\"cone\", 1}, {\"tree\", 2}};\nfor (auto [name, n] : hits) n *= 10;\nfor (auto& [name, n] : hits) n += 1;\nstd::cout << hits[\"cone\"] << \" \" << hits[\"tree\"];\n```",
+   "options": [
+    "11 21",
+    "10 20",
+    "2 3",
+    "Compile error: `name` is const"
+   ],
+   "answer": 2,
+   "explanation": "With `auto [name, n]`, the bindings refer to members of a hidden **copy** of each pair, so `n *= 10` is lost. With `auto&`, they alias the map's `pair<const std::string, int>`, so `n += 1` sticks. `name` binds to a `const std::string`, but it is never modified here, so this compiles."
+  },
+  {
+   "prompt": "Does this compile (C++17) for `T = int` and `T = std::string`?\n```cpp\ntemplate <typename T>\nstd::size_t bytes(const T& x) {\n  if constexpr (std::is_arithmetic_v<T>) return sizeof(T);\n  else return x.size();\n}\n```",
+   "options": [
+    "Only for int",
+    "Only for std::string",
+    "Yes, both",
+    "No: `int` has no `.size()`"
+   ],
+   "answer": 2,
+   "explanation": "With `if constexpr`, the untaken branch is **discarded** at instantiation, so for `T = int` the `x.size()` line is never instantiated. A plain `if` would compile both branches and fail on `int`. This only works inside templates and only for conditions that depend on the template parameter."
+  },
+  {
+   "prompt": "What does this print?\n```cpp\nusing Msg = std::variant<LidarMsg, ImuMsg, OdomMsg>;\nMsg m = ImuMsg{};\nstd::cout << m.index() << \" \"\n          << (std::get_if<LidarMsg>(&m) == nullptr) << \" \";\nauto& l = std::get<LidarMsg>(m);\n```",
+   "options": [
+    "1 1, then throws std::bad_variant_access",
+    "1 0 then UB",
+    "2 1 then UB",
+    "0 1 then returns a default LidarMsg"
+   ],
+   "answer": 0,
+   "explanation": "`index()` is the zero-based position of the active alternative (`ImuMsg` = 1). `get_if` returns `nullptr` for the wrong type, which is the non-throwing check. `std::get<T>` on the wrong alternative **throws** `std::bad_variant_access`, so it is never UB. Prefer `std::visit` so the compiler makes you handle every alternative."
+  },
+  {
+   "prompt": "Parsing `\"rate=10.5;frame=base\"` held in a `std::string_view sv`. Which is a bug?\n```cpp\nstd::string_view val = sv.substr(5, 4);       // (A) \"10.5\"\ndouble r1 = std::atof(val.data());             // (B)\ndouble r2;\nstd::from_chars(val.data(), val.data() + val.size(), r2);  // (C)\nstd::string owned(val);                        // (D)\n```",
+   "options": [
+    "A: substr allocates",
+    "B: atof reads until a NUL, past the view's end",
+    "C: from_chars needs a NUL terminator",
+    "D: can't construct a string from a view"
+   ],
+   "answer": 1,
+   "explanation": "A `string_view` is **not null-terminated**. `atof`, `strtod` and other C APIs keep reading until a NUL, past the end of `val`, here into `;frame=base`. It happens to stop at `;`, but in general it reads whatever bytes follow the view. `from_chars` takes an explicit `[first, last)` range and was designed for this. `substr` on a view is O(1) with no allocation, and (D) is an explicit, valid conversion (use it when you must call a C API: `std::stod(std::string(val))`)."
+  },
+  {
+   "prompt": "`sizeof(std::optional<double>)` and `sizeof(std::variant<double, int>)` on x86-64 GCC are typically:",
+   "options": [
+    "8 and 8",
+    "8 and 12",
+    "24 and 16, because both heap-allocate",
+    "16 and 16"
+   ],
+   "answer": 3,
+   "explanation": "Both store their payload **inline**: an 8-byte double plus a discriminator (bool `engaged` or the index), padded to 8-byte alignment, gives 16 bytes. Neither allocates, so they are safe in real-time loops, unlike `std::any` or `std::function`, which may heap-allocate."
+  }
+ ]
+}

@@ -1,0 +1,6 @@
+{"title": "Running Median of Range Readings (two heaps)", "track": "slam", "module": "DSA", "order": 6,
+ "type": "code", "difficulty": "Medium", "target_min": 10, "tags": ["priority_queue", "heaps", "streaming", "median"],
+ "hints": ["Keep the lower half in a max-heap and the upper half in a min-heap: `std::priority_queue<double, std::vector<double>, std::greater<double>>`.",
+           "Invariant: `lo.size() == hi.size()` or `lo.size() == hi.size() + 1`, and `lo.top() <= hi.top()`.",
+           "add(x): push into `lo` if it is empty or `x <= lo.top()`, else into `hi`. Then rebalance by moving one top across if the sizes break the invariant.",
+           "median: odd count gives `lo.top()`, even count gives `(lo.top() + hi.top()) / 2`, empty gives NaN."]}

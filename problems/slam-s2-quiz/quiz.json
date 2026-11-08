@@ -1,0 +1,81 @@
+{
+ "questions": [
+  {
+   "prompt": "How many degrees of freedom does a 3D rotation have, and how many independent constraints does $R^TR=I$ put on the 9 entries of $R$?",
+   "options": [
+    "4 DOF; 5 constraints",
+    "3 DOF; 6 constraints",
+    "3 DOF; 3 constraints",
+    "9 DOF; 0 constraints"
+   ],
+   "answer": 1,
+   "explanation": "$R^TR=I$ is symmetric, so it gives 6 independent equations (3 unit-norm columns + 3 orthogonality pairs). 9 − 6 = 3 DOF. $\\det R=+1$ then excludes reflections; it's a discrete choice, not a DOF. That's why optimizers use a 3-vector increment $\\delta\\theta$ rather than 9 matrix entries."
+  },
+  {
+   "prompt": "Why are quaternions (or rotation matrices) preferred over Euler angles for a SLAM state?",
+   "options": [
+    "Euler angles have singularities (gimbal lock), wrap-around, and order conventions, and they don't compose or interpolate linearly",
+    "Euler angles use more memory",
+    "Euler angles can't represent 180° rotations",
+    "Quaternions are always faster to apply to a point"
+   ],
+   "answer": 0,
+   "explanation": "At pitch = ±90° (ZYX) yaw and roll become coupled, so the Jacobian loses rank and filters blow up. Euler angles also need trig to compose, and averaging angles near ±π is wrong. Quaternions are singularity-free, compose with 16 multiplies, and renormalize easily. Use Euler only for human-readable I/O."
+  },
+  {
+   "prompt": "What is the quaternion **double cover**?",
+   "options": [
+    "Every quaternion represents two different rotations",
+    "A quaternion and its conjugate are the same rotation",
+    "Quaternions need two numbers per axis",
+    "$q$ and $-q$ represent the **same** rotation; unit quaternions cover SO(3) twice"
+   ],
+   "answer": 3,
+   "explanation": "$R(q)$ is quadratic in $q$, so $R(-q)=R(q)$. Consequences: canonicalize ($w\\ge0$) before comparing; before averaging or slerping, flip one input if $q_1\\cdot q_2<0$; and the error between quaternions should use $|q_1\\cdot q_2|$."
+  },
+  {
+   "prompt": "`Eigen::Quaterniond q(1, 2, 3, 4);` What does `q.coeffs().transpose()` print (before normalization)?",
+   "options": [
+    "1 2 3 4",
+    "4 3 2 1",
+    "2 3 4 1",
+    "1 4 3 2"
+   ],
+   "answer": 2,
+   "explanation": "The constructor takes **(w, x, y, z)**, but internal storage and `coeffs()` are **(x, y, z, w)**. So `Eigen::Map<Eigen::Quaterniond>(ptr)` over a ROS-message-like (x,y,z,w) buffer works, while a (w,x,y,z) buffer silently gives a wrong rotation. Also note that this q isn't normalized, so `toRotationMatrix()` would not be orthonormal."
+  },
+  {
+   "prompt": "`p_w = R_wb * p_b`. Which statement is true?",
+   "options": [
+    "The rows of `R_wb` are the body axes expressed in world",
+    "The columns of `R_wb` are the body frame's x/y/z axes expressed in world coordinates",
+    "`R_wb` maps world to body",
+    "`R_bw = -R_wb`"
+   ],
+   "answer": 1,
+   "explanation": "$R_{wb}e_x$ is the first column: the body x-axis written in world coordinates. The inverse is the transpose, $R_{bw}=R_{wb}^T$. Subscripts cancel like $R_{wb}R_{bc}=R_{wc}$. This is the 'passive' / change-of-coordinates reading; the 'active' reading rotates a vector within one frame. Same matrix, different interpretation."
+  },
+  {
+   "prompt": "What is $\\det$ of a 3×3 orthogonal matrix that is a **reflection** (e.g. diag(1, 1, −1))?",
+   "options": [
+    "−1",
+    "0",
+    "+1",
+    "Undefined"
+   ],
+   "answer": 0,
+   "explanation": "Orthogonal matrices have $\\det=\\pm1$. Rotations have +1, reflections −1. Kabsch/Procrustes via SVD can return a reflection for noisy or planar data, so you fix it with $\\mathrm{diag}(1,1,\\det(UV^T))$."
+  },
+  {
+   "prompt": "You integrate a gyro with `R = R * expSO3(w * dt)` for an hour. What happens and how do you fix it?",
+   "options": [
+    "Nothing, exp is exact",
+    "The result becomes Euler angles",
+    "R becomes a reflection immediately",
+    "Floating-point errors accumulate, so R drifts off SO(3) (not orthonormal). Periodically project back: SVD $U V^T$, or keep a quaternion and renormalize"
+   ],
+   "answer": 3,
+   "explanation": "Each product adds ~1e-16 relative error, and they accumulate. Projection onto SO(3) via SVD gives the nearest rotation in the Frobenius norm. Quaternion renormalization is cheaper. Gram-Schmidt works but is biased toward the first axis."
+  }
+ ]
+}

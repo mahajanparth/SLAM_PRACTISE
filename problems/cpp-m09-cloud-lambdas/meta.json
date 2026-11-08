@@ -1,0 +1,6 @@
+{"title": "Cloud Lambdas: sort, crop, box filter, id generator", "track": "cpp", "module": "M09", "order": 2,
+ "type": "code", "difficulty": "Easy", "target_min": 15, "tags": ["lambdas", "captures", "mutable", "erase-remove"],
+ "hints": ["sortByDistance: capture `origin` in the comparator and compare SQUARED distances. Which sort keeps ties in their original order?",
+           "removeOutOfRange: `cloud.erase(std::remove_if(..., lambda), cloud.end())`; remember the old size to compute the count.",
+           "makeBoxFilter must capture `lo` and `hi` BY VALUE, because the returned lambda outlives the function's parameters.",
+           "makeIdGenerator: `return [next = first]() mutable { return next++; };`"]}

@@ -1,0 +1,6 @@
+{"title": "Point-to-Plane ICP: one Gauss-Newton step", "track": "slam", "module": "S6", "order": 4,
+ "type": "code", "difficulty": "Hard", "target_min": 20, "tags": ["icp", "point-to-plane", "gauss-newton", "jacobian", "ldlt"],
+ "hints": ["Plug R ≈ I + [ω]×, t = v into rᵢ = nᵢ·(R pᵢ + t − qᵢ). Use nᵢ·(ω × pᵢ) = ω·(pᵢ × nᵢ) to get a residual that is LINEAR in δ = (ω, v).",
+           "Jacobian row: Jᵢ = [ (pᵢ × nᵢ)ᵀ , nᵢᵀ ] (1×6); residual at δ=0: rᵢ = nᵢ·(pᵢ − qᵢ).",
+           "Accumulate H = Σ JᵢᵀJᵢ (6×6) and b = Σ Jᵢᵀ rᵢ, then solve δ = −H⁻¹ b with `H.ldlt().solve(-b)`. Check degeneracy with `SelfAdjointEigenSolver<Matrix6d>` first.",
+           "applyUpdate: ΔT has rotation AngleAxis(|ω|, ω/|ω|) (identity if ω≈0) and translation v. Return ΔT * T."]}

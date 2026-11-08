@@ -1,0 +1,3 @@
+{"title": "Predict the Output: Captures, Closures, mutable", "track": "cpp", "module": "M09", "order": 1,
+ "type": "quiz", "difficulty": "Easy", "target_min": 7, "tags": ["lambdas", "captures", "closures", "mutable"],
+ "hints": ["A lambda is an object of an unnamed class; captures are its data members, copied when the lambda is created.", "`mutable` makes `operator()` non-const, so the lambda can change ITS copy of the captures."]}

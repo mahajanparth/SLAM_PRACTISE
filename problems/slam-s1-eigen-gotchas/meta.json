@@ -1,0 +1,19 @@
+{
+ "title": "Bug Hunt: Eigen Gotchas",
+ "track": "slam",
+ "module": "S1",
+ "order": 4,
+ "type": "quiz",
+ "difficulty": "Easy",
+ "target_min": 8,
+ "tags": [
+  "eigen",
+  "aliasing",
+  "expression-templates",
+  "alignment"
+ ],
+ "hints": [
+  "For each line, ask: is there a temporary? Is memory read while being written?",
+  "`auto` with Eigen deduces an expression type, not a `Matrix`."
+ ]
+}

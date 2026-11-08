@@ -1,0 +1,6 @@
+{"title": "Rule of Five: an owning PointBuffer", "track": "cpp", "module": "M15", "order": 2,
+ "type": "code", "difficulty": "Easy", "target_min": 25, "tags": ["rule-of-five", "move-semantics", "noexcept", "copy-and-swap"],
+ "hints": ["Copy ctor: allocate `new Point3[o.size_]` and std::copy. Move ctor: `data_(std::exchange(o.data_, nullptr)), size_(std::exchange(o.size_, 0))`.",
+           "Copy assignment via copy-and-swap: `PointBuffer tmp(o); swap(tmp); return *this;`. It's self-assignment safe and strongly exception-safe. To count it as ONE copy, put the deep-copy logic in a private helper constructor that doesn't touch the counter.",
+           "Move assignment: `if (this != &o) { delete[] data_; data_ = std::exchange(o.data_, nullptr); size_ = std::exchange(o.size_, 0); }`.",
+           "The vector-growth test fails unless BOTH move operations are marked `noexcept`."]}

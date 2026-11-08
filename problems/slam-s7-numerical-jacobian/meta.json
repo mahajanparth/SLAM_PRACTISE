@@ -1,0 +1,6 @@
+{"title": "Numerical Jacobian Checker & the −R[p]× Jacobian", "track": "slam", "module": "S7", "order": 3,
+ "type": "code", "difficulty": "Easy", "target_min": 8, "tags": ["jacobian", "central-difference", "so3", "manifold"],
+ "hints": ["Column k of J is (f(x + eps·e_k) − f(x − eps·e_k)) / (2·eps). Evaluate f(x) once to learn the output size m.",
+           "skew(v) = [[0,−z,y],[z,0,−x],[−y,x,0]] so that skew(a)*b == a.cross(b).",
+           "Numerical rotation Jacobian: wrap δ ↦ R·expSO3(δ)·p in a lambda and call numericalJacobian at δ = 0. Never perturb R's 9 entries directly.",
+           "Analytic: R·Exp(δ)·p ≈ R(I + [δ]×)p = Rp − R[p]×δ, so J = −R·skew(p)."]}

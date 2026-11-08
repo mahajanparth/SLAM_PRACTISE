@@ -1,0 +1,92 @@
+{
+ "questions": [
+  {
+   "prompt": "Output?\n```cpp\nstd::vector<double> ranges = {0.5, 1.5, 2.5};\nauto s = std::accumulate(ranges.begin(), ranges.end(), 0);\nstd::cout << s;\n```",
+   "options": [
+    "3",
+    "4.5",
+    "4",
+    "Compile error"
+   ],
+   "answer": 0,
+   "explanation": "The accumulator has the type of the **init value**, `int 0`. Each step computes `int + double` and converts the result back to int: 0+0.5 → 0, 0+1.5 → 1, 1+2.5 = 3.5 → 3. Write `0.0`, or `Point3{0,0,0}` for a centroid. `-Wconversion` would flag it."
+  },
+  {
+   "prompt": "`std::vector<double> t = {0.1, 0.2, 0.3, 0.4};` What does `std::lower_bound(t.begin(), t.end(), 0.25) - t.begin()` return?",
+   "options": [
+    "1",
+    "-1 (not found)",
+    "3",
+    "2"
+   ],
+   "answer": 3,
+   "explanation": "`lower_bound` returns the first element **≥** value, which is 0.3 at index 2. It never reports \"not found\"; at most it returns `end()`. The nearest stamp is either index 2 or index 1 (`std::prev`), so compare both. `upper_bound` returns the first element **>** value."
+  },
+  {
+   "prompt": "What do you get after `std::nth_element(v.begin(), v.begin() + 2, v.end());` on `v = {9, 4, 7, 1, 8, 2}`?",
+   "options": [
+    "v is fully sorted",
+    "v[2] == 4, everything before it is ≤ 4 and everything after is ≥ 4 (in unspecified order)",
+    "The first 3 elements are sorted, the rest untouched",
+    "v[2] == 7"
+   ],
+   "answer": 1,
+   "explanation": "`nth_element` puts the element that *would* be at position n in sorted order there (sorted: 1 2 **4** 7 8 9) and partitions around it. Average cost is O(n), against O(n log n) for a full sort. It's the right tool for a median, a k-th distance, or the k nearest neighbours (follow it with a sort of the first k if you need them ordered)."
+  },
+  {
+   "prompt": "Which statement about `std::sort` is TRUE?",
+   "options": [
+    "It is stable",
+    "It's O(n²) worst case in libstdc++",
+    "It requires random-access iterators, so you can't call it on `std::list`",
+    "It accepts `<=` as a comparator"
+   ],
+   "answer": 2,
+   "explanation": "`std::sort` is introsort: quicksort that falls back to heapsort, with insertion sort for small ranges. That guarantees O(n log n) worst case, but it isn't stable. It needs random-access iterators, so `std::list` has its own `l.sort()` member. A `<=` comparator violates strict weak ordering, and libstdc++'s unguarded partition can run off the end of the array."
+  },
+  {
+   "prompt": "Output?\n```cpp\nstd::vector<int> v = {1, 2, 3};\nstd::vector<int> out;\nstd::transform(v.begin(), v.end(), out.begin(), [](int x) { return x * x; });\n```",
+   "options": [
+    "out = {1, 4, 9}",
+    "out stays empty and that's fine",
+    "Compile error",
+    "Undefined behaviour: `out` is empty, so the writes go past its end"
+   ],
+   "answer": 3,
+   "explanation": "Algorithms write through iterators and can't grow containers. Either size the destination first (`std::vector<int> out(v.size());`) or use `std::back_inserter(out)`, ideally after `out.reserve(v.size())`. ASan reports this as a heap-buffer-overflow or a null write."
+  },
+  {
+   "prompt": "You want ground points (z < −1.5) first and the rest after, **keeping the scan order in both groups**. Which algorithm?",
+   "options": [
+    "`std::stable_partition`",
+    "`std::partition`",
+    "`std::sort` by z",
+    "`std::remove_if`"
+   ],
+   "answer": 0,
+   "explanation": "`partition` is O(n) but scrambles relative order. `stable_partition` keeps it: O(n) when it can allocate a temp buffer, O(n log n) in place. Sorting by z does far more work than needed and destroys ring/azimuth order. `remove_if` discards the elements it moves."
+  },
+  {
+   "prompt": "Output?\n```cpp\nstd::vector<int> ids = {3, 1, 4, 1, 5};\nauto it = std::find(ids.begin(), ids.end(), 1);\nauto c = std::count(ids.begin(), ids.end(), 1);\nstd::cout << (it - ids.begin()) << c;\n```",
+   "options": [
+    "12",
+    "32",
+    "11",
+    "02"
+   ],
+   "answer": 0,
+   "explanation": "`find` returns an iterator to the **first** match, at index 1, and `count` counts all matches (2). Both are linear scans. For repeated queries on sorted data use `lower_bound`/`equal_range` (O(log n)). For unsorted data, build an `unordered_set`."
+  },
+  {
+   "prompt": "Your teammate writes `std::binary_search(stamps.begin(), stamps.end(), t)` where `stamps` are camera timestamps pushed from **two** cameras interleaved (not globally sorted). What happens?",
+   "options": [
+    "Works, just slower",
+    "Compile error",
+    "Precondition violated: the result is meaningless (false negatives or false positives), with no diagnostic",
+    "Throws std::invalid_argument"
+   ],
+   "answer": 2,
+   "explanation": "All the binary-search algorithms (`lower_bound`, `upper_bound`, `equal_range`, `binary_search`) assume the range is partitioned with respect to the value, and they don't check it. Sort once (or merge the two sorted streams) and assert `std::is_sorted` in debug builds. Also note that `binary_search` on doubles tests exact equality, which is rarely what you want for timestamps."
+  }
+ ]
+}

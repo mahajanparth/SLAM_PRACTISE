@@ -1,0 +1,6 @@
+{"title": "Generic RingBuffer<T, N> for IMU history", "track": "cpp", "module": "M16", "order": 2,
+ "type": "code", "difficulty": "Easy", "target_min": 20, "tags": ["class template", "non-type parameter", "std::array", "move semantics"],
+ "hints": ["Store `head_` (index of the oldest element) and `size_`. The logical element i is `buf_[(head_ + i) % N]`.",
+           "push when full: overwrite `buf_[head_]` (the oldest) and advance `head_ = (head_ + 1) % N`. When not full, write at `(head_ + size_) % N` and ++size_.",
+           "push(T&&) must `std::move(v)` into the slot so move-only types (unique_ptr) work. pop: `T out = std::move(buf_[head_]); ...; return out;`.",
+           "average: `T acc{}; for (i < size) acc = acc + rb[i]; return acc / static_cast<double>(rb.size());` (or T{} if empty)."]}

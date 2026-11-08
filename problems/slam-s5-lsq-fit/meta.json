@@ -1,0 +1,5 @@
+{"title": "Least-Squares Plane & Line Fit (PCA)", "track": "slam", "module": "S5", "order": 4,
+ "type": "code", "difficulty": "Easy", "target_min": 8, "tags": ["pca", "eigen", "plane", "line", "total-least-squares"],
+ "hints": ["Centre first: mu = mean, C = sum (p-mu)(p-mu)^T. Never fit z = ax + by + c (it can't represent vertical planes and it minimises vertical, not orthogonal, error).",
+           "`Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d>` returns eigenvalues in ascending order: plane normal = col(0), line direction = col(2).",
+           "Degeneracy: plane needs λ1 clearly > 0 (not collinear); line needs λ2 > 0 (not all identical). Compare against λ2 (relative), not an absolute epsilon."]}

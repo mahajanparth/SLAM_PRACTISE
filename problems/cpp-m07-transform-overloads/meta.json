@@ -1,0 +1,6 @@
+{"title": "Transform Utility: overloads, rvalue sinks, default args", "track": "cpp", "module": "M07", "order": 2,
+ "type": "code", "difficulty": "Easy", "target_min": 15, "tags": ["overloading", "rvalue references", "default arguments", "parameter passing"],
+ "hints": ["`apply(const Pose&, const Point3&)` is the workhorse. Every other function should call it rather than duplicating the rotation math.",
+           "The `const std::vector<Point3>&` overload has to allocate a new vector (call `reserve` first). The `&&` overload owns its argument, so it can transform in place and hand the same buffer back.",
+           "Inside a function, a named rvalue reference is an **lvalue**. Returning it needs `return std::move(cloud);`, or you get a copy and the data pointer changes.",
+           "Default arguments belong in the declaration only: `Pose makePose(double yaw, double tx = 0, double ty = 0, double tz = 0);`"]}

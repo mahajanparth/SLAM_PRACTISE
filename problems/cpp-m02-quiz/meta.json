@@ -1,0 +1,3 @@
+{"title": "Predict the Output: std::vector, Capacity, Invalidation", "track": "cpp", "module": "M02", "order": 1,
+ "type": "quiz", "difficulty": "Easy", "target_min": 8, "tags": ["vector", "capacity", "iterator invalidation", "erase-remove"],
+ "hints": ["`remove`/`remove_if` never change size(). They only shuffle elements.", "Anything that can reallocate invalidates every iterator, pointer and reference."]}

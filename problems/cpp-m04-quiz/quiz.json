@@ -1,0 +1,92 @@
+{
+ "questions": [
+  {
+   "prompt": "Output?\n```cpp\nstd::map<int, int> obs;\nif (obs[42] > 0) std::cout << \"seen \";\nstd::cout << obs.size();\n```",
+   "options": [
+    "1",
+    "0",
+    "seen 1",
+    "Throws std::out_of_range"
+   ],
+   "answer": 0,
+   "explanation": "`operator[]` **inserts** a value-initialised `0` for the missing key 42, so the check is false but the size becomes 1. Read-only lookups should use `find`, `count`, `contains` (C++20) or `at` (which throws when the key is missing). This is also why `[]` doesn't compile on a `const` map."
+  },
+  {
+   "prompt": "Poses are buffered as `std::map<double, Pose> buf` keyed by timestamp: {1.0, 2.0, 3.0}. What does `buf.lower_bound(2.5)->first` return?",
+   "options": [
+    "2.0",
+    "end()",
+    "2.5",
+    "3.0"
+   ],
+   "answer": 3,
+   "explanation": "`lower_bound(k)` returns the first element with key **≥ k**, which is 3.0. `upper_bound(k)` returns the first with key **> k**. To interpolate at 2.5, take `it = lower_bound(t)` and `std::prev(it)`, after checking for `begin()`/`end()`. Both calls are O(log n) on the tree."
+  },
+  {
+   "prompt": "Which statement about `std::unordered_map` is FALSE?",
+   "options": [
+    "Average lookup is O(1), worst case O(n)",
+    "Its elements are stored contiguously, like a vector",
+    "A rehash invalidates iterators but NOT pointers/references to elements",
+    "Iteration order is unspecified and can change after a rehash"
+   ],
+   "answer": 1,
+   "explanation": "The libstdc++ `unordered_map` is an array of buckets, each pointing into a singly-linked list of separately allocated **nodes**. That's why references stay valid across a rehash (nodes don't move) while iterators don't. The node-per-element allocation is also why flat/open-addressing maps are often faster."
+  },
+  {
+   "prompt": "Spot the bug:\n```cpp\nstruct Key { int x, y, z; bool operator==(const Key&) const = default; /* pretend C++20 */ };\nstruct H { size_t operator()(const Key& k) const { return k.x ^ k.y ^ k.z; } };\nstd::unordered_map<Key, int, H> grid;\n```",
+   "options": [
+    "Compiles and works well",
+    "UB: the hash must be unique",
+    "Correct but terrible: (1,2,3), (3,2,1), (0,0,0), (5,5,0) … collide, so buckets degrade to linked lists",
+    "Doesn't compile without std::hash<Key>"
+   ],
+   "answer": 2,
+   "explanation": "A hash only *needs* to be consistent with `==`. Collisions are legal but cost time. XOR is symmetric and cancels equal values, so a 40³ grid collapses to about 64 distinct hashes and lookups go from O(1) to O(n). Mix the bits: hash_combine, or multiply each coordinate by a large odd constant."
+  },
+  {
+   "prompt": "Output?\n```cpp\nstd::unordered_map<int, std::string> m;\nm.reserve(1000);\nauto b = m.bucket_count();\nfor (int i = 0; i < 1000; ++i) m[i] = \"lm\";\nstd::cout << (m.bucket_count() == b);\n```",
+   "options": [
+    "0",
+    "Compile error",
+    "Unspecified",
+    "1"
+   ],
+   "answer": 3,
+   "explanation": "`reserve(n)` sizes the bucket array so that n elements fit under `max_load_factor()` (default 1.0). No rehash happens during the 1000 inserts, which also means no stalls and no iterator invalidation. It's the hash-map version of `vector::reserve`."
+  },
+  {
+   "prompt": "What does this print?\n```cpp\nstd::map<std::string, int> m{{\"b\", 2}, {\"a\", 1}, {\"c\", 3}};\nauto [it, ok] = m.insert({\"a\", 99});\nstd::cout << ok << it->second;\n```",
+   "options": [
+    "199",
+    "01",
+    "099",
+    "11"
+   ],
+   "answer": 1,
+   "explanation": "`insert` does **not** overwrite: the key exists, so it returns `{iterator to existing, false}`, and `it->second` is still 1. Use `m[\"a\"] = 99` or `insert_or_assign` to overwrite. `try_emplace` is like insert but doesn't even construct the value when the key exists."
+  },
+  {
+   "prompt": "Iterating a `std::map<int, Landmark>` while erasing. Which loop is correct?",
+   "options": [
+    "`for (auto it = m.begin(); it != m.end(); ++it) if (bad(*it)) m.erase(it);`",
+    "`for (auto it = m.begin(); it != m.end(); ) { if (bad(*it)) it = m.erase(it); else ++it; }`",
+    "`for (auto& [k, v] : m) if (bad(v)) m.erase(k);`",
+    "Maps can't be modified during iteration at all"
+   ],
+   "answer": 1,
+   "explanation": "`erase(it)` invalidates only `it` and returns the next iterator, so you advance with the return value. The plain `++it` loop and the range-for loop both use an invalidated iterator (UB). C++20 adds `std::erase_if(m, pred)`."
+  },
+  {
+   "prompt": "Your map has 10⁶ keyframes keyed by `uint64_t` id, and you only ever look ids up exactly (no range queries). Typical speed ranking?",
+   "options": [
+    "map faster than unordered_map",
+    "Identical",
+    "unordered_map (avg O(1), ~1 cache miss to bucket + node) faster than map (O(log n) ≈ 20 pointer-chasing node hops)",
+    "Neither is allowed for uint64_t keys"
+   ],
+   "answer": 2,
+   "explanation": "Each level of a red-black tree is a dependent cache miss, and log₂(10⁶) ≈ 20. Choose `std::map` when you need **ordering** (range queries, nearest timestamp, sorted output) or guaranteed O(log n) worst case. A sorted `std::vector` + binary search beats both for static data."
+  }
+ ]
+}

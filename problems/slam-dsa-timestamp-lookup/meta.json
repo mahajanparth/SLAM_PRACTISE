@@ -1,0 +1,6 @@
+{"title": "Pose at a Lidar Timestamp: nearest & interpolated", "track": "slam", "module": "DSA", "order": 4,
+ "type": "code", "difficulty": "Easy", "target_min": 8, "tags": ["lower_bound", "binary search", "slerp", "interpolation", "time sync"],
+ "hints": ["`std::lower_bound` with a comparator `(const StampedPose& s, double t) { return s.t < t; }` gives the first sample with stamp >= t in O(log n).",
+           "Nearest: compare the candidate `it` and `it - 1`. Handle `it == begin()` and `it == end()` before dereferencing.",
+           "Interpolate: reject t outside [front.t, back.t]. With bracketing samples a = it-1 and b = it, set `alpha = (t - a.t) / (b.t - a.t)`, `p = (1-alpha) a.p + alpha b.p`, `q = a.q.slerp(alpha, b.q)`.",
+           "Gap check: reject if `b.t - a.t > max_gap` (a dropped message). An exact stamp match needs no bracketing."]}

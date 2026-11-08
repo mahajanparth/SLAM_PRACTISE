@@ -1,0 +1,6 @@
+{"title": "Rotation Matrix <-> Quaternion (by hand)", "track": "slam", "module": "S2", "order": 2,
+ "type": "code", "difficulty": "Medium", "target_min": 12, "tags": ["quaternion", "rotation-matrix", "numerics", "shepperd"],
+ "hints": ["The trace gives w: tr(R) = 4w² − 1. The off-diagonal differences give x, y, z: R(2,1) − R(1,2) = 4wx, etc.",
+           "That divides by 4w, which blows up for 180° rotations (trace = −1, w = 0). If the trace is ≤ 0, use the largest diagonal element instead (Shepperd's method): e.g. x = ½√(1 + R00 − R11 − R22), then w, y, z from sums/differences of off-diagonals divided by 4x.",
+           "quatToRot: normalize q first, then use the standard formula, e.g. R(0,0) = 1 − 2(y² + z²), R(0,1) = 2(xy − wz).",
+           "Canonicalize the output: if w < 0, negate the whole quaternion."]}

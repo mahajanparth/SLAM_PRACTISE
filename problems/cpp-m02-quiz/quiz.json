@@ -1,0 +1,92 @@
+{
+ "questions": [
+  {
+   "prompt": "Output?\n```cpp\nstd::vector<int> v = {1, 2, 3, 2, 5};\nstd::remove(v.begin(), v.end(), 2);\nstd::cout << v.size();\n```",
+   "options": [
+    "5",
+    "3",
+    "4",
+    "Undefined"
+   ],
+   "answer": 0,
+   "explanation": "`std::remove` is an algorithm, so it only sees iterators and **cannot** change the container's size. It moves the kept elements to the front (`1 3 5 ? ?`) and returns the new logical end. You still need `v.erase(new_end, v.end())`. This is the erase-remove idiom."
+  },
+  {
+   "prompt": "Output?\n```cpp\nstd::vector<Point3> c;\nc.reserve(100);\nstd::cout << c.size() << \" \" << (c.capacity() >= 100);\n```",
+   "options": [
+    "100 1",
+    "100 0",
+    "0 0",
+    "0 1"
+   ],
+   "answer": 3,
+   "explanation": "`reserve` allocates raw storage only. It constructs nothing and leaves `size()` at 0. `c[5]` would be UB. `resize(100)` would construct 100 value-initialised points and set size to 100."
+  },
+  {
+   "prompt": "Spot the bug:\n```cpp\nfor (auto it = cloud.begin(); it != cloud.end(); ++it)\n  if (it->z < 0) cloud.erase(it);\n```",
+   "options": [
+    "None",
+    "`erase` invalidates `it`, and the loop also skips the element after each erased one",
+    "`erase` is O(1), so it's just slow",
+    "Must use `const_iterator`"
+   ],
+   "answer": 1,
+   "explanation": "After `erase(it)`, `it` is invalidated, and incrementing it is UB. Even the 'fixed' version `it = cloud.erase(it);` followed by `++it` skips an element and is O(n²) overall, because each erase shifts the tail. Use `cloud.erase(std::remove_if(...), cloud.end())`, which is one O(n) pass."
+  },
+  {
+   "prompt": "A vector has `size() == capacity() == 4`. Which pointers are still valid after `v.push_back(x)`?\n```cpp\nint* p = &v[0];\nauto it = v.begin() + 2;\nstd::size_t i = 2;\n```",
+   "options": [
+    "All three",
+    "`p` and `it`",
+    "Only `i`",
+    "None"
+   ],
+   "answer": 2,
+   "explanation": "The size is at capacity, so `push_back` reallocates: it allocates a new buffer, moves the elements over and frees the old one. Every pointer, reference and iterator now dangles. An **index** is just a number and stays meaningful. That's why SLAM maps often refer to landmarks by index or id."
+  },
+  {
+   "prompt": "Approximately how many reallocations does this do in libstdc++?\n```cpp\nstd::vector<double> v;\nfor (int i = 0; i < 1000000; ++i) v.push_back(i);\n```",
+   "options": [
+    "1,000,000",
+    "~1,000",
+    "1",
+    "~20"
+   ],
+   "answer": 3,
+   "explanation": "Capacity grows geometrically (doubling in libstdc++): 1, 2, 4, …, 2^20, which is about 20 reallocations. Total copying stays O(n), so `push_back` is *amortised* O(1). Calling `reserve(1000000)` first cuts this to one allocation."
+  },
+  {
+   "prompt": "What does `v.clear()` do to capacity?\n```cpp\nstd::vector<Point3> v(1000);\nv.clear();\nstd::cout << v.size() << \" \" << (v.capacity() >= 1000);\n```",
+   "options": [
+    "0 1",
+    "0 0",
+    "1000 1",
+    "Implementation-defined size"
+   ],
+   "answer": 0,
+   "explanation": "`clear()` destroys the elements but keeps the buffer. That's ideal for a per-scan scratch vector you reuse every frame: no malloc in the loop. To actually free the memory, use `shrink_to_fit()` (a non-binding request) or `std::vector<Point3>().swap(v)`."
+  },
+  {
+   "prompt": "Which is the cheapest way to remove element `i` from a `std::vector<Point3>` when **order does not matter**?",
+   "options": [
+    "`v.erase(v.begin() + i);`",
+    "`std::swap(v[i], v.back()); v.pop_back();`",
+    "`std::remove(v.begin(), v.end(), v[i]);`",
+    "Copy all other elements into a new vector"
+   ],
+   "answer": 1,
+   "explanation": "Swap-and-pop is O(1). `erase` in the middle shifts the whole tail, which is O(n). This is the standard trick for unordered landmark or particle sets."
+  },
+  {
+   "prompt": "What's wrong here?\n```cpp\nstd::vector<bool> flags(n);\nbool& f = flags[0];\n```",
+   "options": [
+    "Nothing",
+    "UB at runtime",
+    "Compile error: `vector<bool>` returns a proxy object, not `bool&`",
+    "`flags` must be reserved first"
+   ],
+   "answer": 2,
+   "explanation": "`std::vector<bool>` is a bit-packed specialisation. `operator[]` returns a `std::vector<bool>::reference` proxy, so there's no real `bool` to bind to. It's also slow, and not thread-safe for writes to neighbouring bits. Robotics code often uses `std::vector<uint8_t>` for masks instead."
+  }
+ ]
+}

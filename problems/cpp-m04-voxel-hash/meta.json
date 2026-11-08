@@ -1,0 +1,6 @@
+{"title": "Voxel Downsampling with unordered_map + Custom Hash", "track": "cpp", "module": "M04", "order": 3,
+ "type": "code", "difficulty": "Medium", "target_min": 30, "tags": ["unordered_map", "custom hash", "operator==", "voxel grid"],
+ "hints": ["Use `std::floor`, not a cast: `static_cast<int>(-0.3 / 0.5)` is 0, but the point belongs to voxel -1.",
+           "`unordered_map<Key, V, Hash>` needs two things: `Hash{}(key)` → size_t, and `key == key`. Equal keys **must** hash equally.",
+           "Good hash: mix each coordinate with hash_combine: `h ^= std::hash<int>{}(v) + 0x9e3779b97f4a7c15 + (h << 6) + (h >> 2);`. Plain `x ^ y ^ z` makes every permutation and every (a, a, b) collide.",
+           "Downsample: `unordered_map<VoxelKey, std::size_t, VoxelKeyHash>` from key to slot index in a vector of `{sum, count}` accumulators. A new key appends a slot, which preserves first-appearance order. Divide at the end."]}

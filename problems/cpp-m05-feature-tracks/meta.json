@@ -1,0 +1,6 @@
+{"title": "Feature Track Bookkeeping with set, unordered_set & set algorithms", "track": "cpp", "module": "M05", "order": 2,
+ "type": "code", "difficulty": "Easy", "target_min": 15, "tags": ["set", "unordered_set", "set_intersection", "set_difference", "tuple keys"],
+ "hints": ["`std::set<int> a(prev.begin(), prev.end());` sorts and dedups in one line. Its iteration is ascending.",
+           "`std::set_intersection(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(out))` needs **sorted** ranges, which a std::set gives you. `set_difference(a, b)` gives a \\ b.",
+           "countUniqueVoxels: `std::set<std::tuple<int,int,int>>` works out of the box because tuple has `operator<`. Remember `std::floor` for negative coordinates.",
+           "hasDuplicateIds: `unordered_set::insert` returns `{iterator, bool inserted}`. The first `false` is a duplicate, so you can stop early."]}

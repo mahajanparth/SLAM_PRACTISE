@@ -1,0 +1,3 @@
+{"title": "Predict the Output: Copy/Move, Rule of 0/3/5, noexcept", "track": "cpp", "module": "M15", "order": 1,
+ "type": "quiz", "difficulty": "Medium", "target_min": 8, "tags": ["rule-of-five", "move-semantics", "noexcept", "special-members"],
+ "hints": ["Declaring a destructor or a copy operation suppresses the implicit MOVE operations, so 'moves' silently become copies.", "std::vector only moves elements during reallocation if the move constructor is noexcept (or the type isn't copyable)."]}

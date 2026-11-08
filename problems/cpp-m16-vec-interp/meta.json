@@ -1,0 +1,6 @@
+{"title": "Vec<T,N> + interpolate<T> with an Angle specialization", "track": "cpp", "module": "M16", "order": 3,
+ "type": "code", "difficulty": "Medium", "target_min": 30, "tags": ["class template", "operator overloading", "full specialization", "lower_bound"],
+ "hints": ["Vec operators: build a result `Vec r;` and loop `for (std::size_t i = 0; i < N; ++i)`. N is a compile-time constant, so the compiler can unroll it.",
+           "Free `operator*(T s, const Vec<T,N>& a)` is a template too: `template <typename T, std::size_t N> Vec<T,N> operator*(T s, const Vec<T,N>& a) { return a * s; }`.",
+           "Angle: wrap the difference to (-π, π] first: `d = wrap(b.rad - a.rad)`, then `wrap(a.rad + t * d)`. wrap(x): `x = fmod(x + π, 2π); if (x <= 0) x += 2π; return x - π;`.",
+           "sampleAt: `auto it = std::upper_bound(stamps.begin(), stamps.end(), t)`; clamp at the ends; then `k = it - begin`, alpha = (t - s[k-1]) / (s[k] - s[k-1]); return `interpolate(values[k-1], values[k], alpha)`. The call picks the Angle specialization automatically."]}

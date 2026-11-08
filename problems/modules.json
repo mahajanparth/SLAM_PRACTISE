@@ -1,0 +1,45 @@
+{
+  "tracks": [
+    {
+      "id": "cpp",
+      "title": "C++17 Revision",
+      "modules": [
+        {"id": "M01", "title": "Fundamentals", "sitting": "R1", "blurb": "Variables, references, pointers, const, auto"},
+        {"id": "M07", "title": "Functions", "sitting": "R1", "blurb": "Pass by value/ref/const ref/rvalue, overloading, default args, RVO"},
+        {"id": "M02", "title": "Vectors", "sitting": "R1", "blurb": "std::vector, iterators, capacity, reallocation, erase-remove"},
+        {"id": "M03", "title": "STL Containers", "sitting": "R2", "blurb": "array, deque, list, pair, tuple"},
+        {"id": "M04", "title": "Maps & Hashing", "sitting": "R2", "blurb": "map, unordered_map, custom hash, buckets"},
+        {"id": "M05", "title": "Sets", "sitting": "R2", "blurb": "set, unordered_set, multiset"},
+        {"id": "M06", "title": "STL Algorithms", "sitting": "R3", "blurb": "sort, find, transform, lower_bound, nth_element, accumulate"},
+        {"id": "M09", "title": "Lambdas", "sitting": "R3", "blurb": "Captures, closures, generic lambdas, mutable"},
+        {"id": "M08", "title": "Function Pointers & std::function", "sitting": "R3", "blurb": "Callbacks, std::function, member-function pointers"},
+        {"id": "M10", "title": "Memory Management", "sitting": "R4", "blurb": "Stack vs heap, new/delete, RAII, alignment"},
+        {"id": "M11", "title": "Smart Pointers", "sitting": "R4", "blurb": "unique_ptr, shared_ptr, weak_ptr, cycles"},
+        {"id": "M15", "title": "Object Lifetime", "sitting": "R4", "blurb": "Copy/move ctors, Rule of 0/3/5, noexcept"},
+        {"id": "M12", "title": "OOP Fundamentals", "sitting": "R5", "blurb": "Classes, constructors, destructors, invariants, initializer lists"},
+        {"id": "M13", "title": "Inheritance", "sitting": "R5", "blurb": "Base/derived, access specifiers, construction order"},
+        {"id": "M14", "title": "Polymorphism", "sitting": "R5", "blurb": "virtual, override, abstract classes, vtables, slicing, virtual dtor"},
+        {"id": "M16", "title": "Templates", "sitting": "R6", "blurb": "Function/class templates, specialization, SFINAE basics"},
+        {"id": "M17", "title": "Modern C++17", "sitting": "R6", "blurb": "Structured bindings, optional, variant, if constexpr, string_view"},
+        {"id": "M19", "title": "Advanced STL", "sitting": "R6", "blurb": "Custom comparators, hashing, priority_queue"},
+        {"id": "M18", "title": "Multithreading", "sitting": "R7", "blurb": "thread, mutex, lock_guard, condition_variable, atomics"},
+        {"id": "M20", "title": "Interview Practice (C++)", "sitting": "R7", "blurb": "Mixed robotics-flavoured C++ problems"}
+      ]
+    },
+    {
+      "id": "slam",
+      "title": "SLAM Interview",
+      "modules": [
+        {"id": "S1", "title": "C++ & Eigen Fundamentals", "blurb": "Eigen types, solvers, gotchas"},
+        {"id": "S2", "title": "Rotations", "blurb": "Quaternions, SO(3) exp/log, Euler, slerp"},
+        {"id": "S3", "title": "Rigid Transforms", "blurb": "SE(3), frame chains, SE(2) odometry"},
+        {"id": "S4", "title": "Point Cloud Basics", "blurb": "Voxel grid, kNN, normals, outliers"},
+        {"id": "S5", "title": "Spatial Search & Robust Fitting", "blurb": "KD-tree, RANSAC, clustering"},
+        {"id": "S6", "title": "Registration", "blurb": "Kabsch/Umeyama, ICP"},
+        {"id": "S7", "title": "Nonlinear Least Squares", "blurb": "Gauss-Newton, LM, robust kernels, pose graph"},
+        {"id": "S8", "title": "Estimation & Mapping", "blurb": "EKF, projection, triangulation, occupancy grid, A*"},
+        {"id": "DSA", "title": "C++ Data Structures for Robotics", "blurb": "Ring buffer, queues, LRU, timestamps"}
+      ]
+    }
+  ]
+}

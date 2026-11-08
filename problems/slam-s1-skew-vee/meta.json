@@ -1,0 +1,5 @@
+{"title": "Skew-Symmetric Matrix (hat) and vee", "track": "slam", "module": "S1", "order": 2,
+ "type": "code", "difficulty": "Easy", "target_min": 5, "tags": ["eigen", "skew", "cross-product", "so3"],
+ "hints": ["Write out a × b component-wise and read off which entry of a multiplies which entry of b.",
+           "Row 0 is [0, -z, y]. Fill a Matrix3d with the comma initializer `S << ...;`.",
+           "vee just reads the three independent entries back: (S(2,1), S(0,2), S(1,0)). Averaging with the mirrored entries is more robust to noise."]}

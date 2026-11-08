@@ -1,0 +1,6 @@
+{"title": "Fixed-Capacity Ring Buffer for IMU Samples", "track": "slam", "module": "DSA", "order": 2,
+ "type": "code", "difficulty": "Easy", "target_min": 10, "tags": ["templates", "ring buffer", "std::array", "modular arithmetic"],
+ "hints": ["Store `std::array<T, N> buf_`, a `head_` index (next write slot), and a `size_`.",
+           "push: `buf_[head_] = v; head_ = (head_ + 1) % N; if (size_ < N) ++size_;`",
+           "The oldest element lives at `(head_ + N - size_) % N`, so `operator[](i)` is `buf_[(head_ + N - size_ + i) % N]`.",
+           "Out-of-range access: throw `std::out_of_range` (check `i >= size_` first). `back()` is `(*this)[size_ - 1]` after an empty check."]}

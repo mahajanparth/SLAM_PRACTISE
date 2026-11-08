@@ -1,0 +1,18 @@
+{
+ "title": "Warmup: Rotation Representations",
+ "track": "slam",
+ "module": "S2",
+ "order": 1,
+ "type": "quiz",
+ "difficulty": "Easy",
+ "target_min": 7,
+ "tags": [
+  "rotations",
+  "quaternions",
+  "conventions"
+ ],
+ "hints": [
+  "Count numbers vs constraints.",
+  "Think about what q and -q do to a vector in q v q*."
+ ]
+}

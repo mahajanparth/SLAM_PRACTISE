@@ -1,0 +1,6 @@
+{"title": "Keyframe / MapPoint Graph with shared_ptr + weak_ptr", "track": "cpp", "module": "M11", "order": 3,
+ "type": "code", "difficulty": "Medium", "target_min": 35, "tags": ["shared_ptr", "weak_ptr", "cycles", "slam-map", "lifetime"],
+ "hints": ["Ownership graph: Map → Keyframe (shared), Map → MapPoint (shared), Keyframe → MapPoint (shared), MapPoint → Keyframe (WEAK). No strong cycle, so dropping the map frees everything.",
+           "Live observers: `for (auto& w : mp->observers) if (auto kf = w.lock()) ...`. Never dereference a weak_ptr without lock().",
+           "pruneObservations: erase-remove with `[](const std::weak_ptr<Keyframe>& w) { return w.expired(); }` on each map point, summing size differences.",
+           "removeMapPoint: lock each observer and erase the point from its `points` vector BEFORE erasing it from the map. Then the last owner goes away and MapPoint::live drops."]}

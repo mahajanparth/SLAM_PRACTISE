@@ -1,0 +1,6 @@
+{"title": "Range Filter Chain: abstract interface + unique_ptr", "track": "cpp", "module": "M14", "order": 2,
+ "type": "code", "difficulty": "Easy", "target_min": 15, "tags": ["virtual", "override", "abstract class", "unique_ptr"],
+ "hints": ["Each derived class overrides both `apply` and `name`. Mark them `override` and `const`.",
+           "MovingAverage: keep a running sum; add in[i], and once i >= window subtract in[i - window]. Divide by min(i+1, window).",
+           "FilterChain stores `std::vector<std::unique_ptr<Filter>>`; `add` must `std::move` the pointer in.",
+           "Chain apply: `auto out = in; for (const auto& f : filters_) out = f->apply(out); return out;`"]}

@@ -1,0 +1,6 @@
+{"title": "Occupancy Grid Mapping with Bresenham and Log-Odds", "track": "slam", "module": "S8", "order": 5,
+ "type": "code", "difficulty": "Medium", "target_min": 20, "tags": ["occupancy-grid", "bresenham", "log-odds", "mapping"],
+ "hints": ["worldToCell: floor((p − origin) / resolution). std::floor, not a cast, because the cast truncates toward zero for negative values.",
+           "Bresenham for all octants: dx = |x1−x0|, dy = −|y1−y0|, err = dx + dy, sx/sy = ±1; loop: emit; if at end break; e2 = 2err; if (e2 ≥ dy) {err += dy; x += sx;} if (e2 ≤ dx) {err += dx; y += sy;}",
+           "Trace in cell space even when the endpoint is outside the map (compute cell indices with floor, without bounds-checking), and only skip out-of-bounds cells when updating.",
+           "Hit iff range < max_range: all ray cells except the last get l_free, the last gets l_occ. A max-range beam marks everything free. Clamp after every update."]}

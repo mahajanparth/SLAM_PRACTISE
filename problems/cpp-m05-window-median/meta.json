@@ -1,0 +1,6 @@
+{"title": "Sliding-Window Median Range Filter with std::multiset", "track": "cpp", "module": "M05", "order": 3,
+ "type": "code", "difficulty": "Medium", "target_min": 30, "tags": ["multiset", "sliding window", "median", "iterators"],
+ "hints": ["Keep the raw window in a `std::deque<double>` (FIFO order) and the same values in a `std::multiset<double>` (sorted order).",
+           "Evicting a value: `ms.erase(ms.find(v))` removes ONE copy. `ms.erase(v)` removes **every** copy, which is the classic multiset bug once ranges repeat.",
+           "Simple O(k) median: `std::next(ms.begin(), n / 2)`, plus its predecessor when n is even. That passes, but an interviewer will push for O(log k).",
+           "O(log k): two multisets. `lo` holds the smaller half, `hi` the larger, and `lo.size()` is `hi.size()` or `hi.size() + 1`. Median is `*lo.rbegin()` (odd) or the average with `*hi.begin()`. On erase, check which half holds the value, then rebalance."]}

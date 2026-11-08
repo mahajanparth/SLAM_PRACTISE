@@ -1,0 +1,6 @@
+{"title": "Landmark Observation Counts with unordered_map & map", "track": "cpp", "module": "M04", "order": 2,
+ "type": "code", "difficulty": "Easy", "target_min": 15, "tags": ["unordered_map", "map", "operator[]", "find"],
+ "hints": ["`++counts[o.landmark_id];` works because `operator[]` default-inserts 0 the first time it sees a key.",
+           "`operator[]` is non-const because it may insert. On a `const` map use `find` (or `count`/`contains`), and never call `[]` just to *look*.",
+           "mostObserved: iterating an `unordered_map` gives you no order, so apply the tie-break explicitly: `c > best || (c == best && id < best_id)`.",
+           "stableLandmarks: accumulate into a `std::map<int,int>`. Its iteration is sorted by key, so the output comes out ascending for free."]}

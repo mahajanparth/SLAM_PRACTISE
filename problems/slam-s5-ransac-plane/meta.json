@@ -1,0 +1,6 @@
+{"title": "RANSAC Plane Fitting", "track": "slam", "module": "S5", "order": 3,
+ "type": "code", "difficulty": "Medium", "target_min": 15, "tags": ["ransac", "plane", "robust-fitting", "random"],
+ "hints": ["Create `std::mt19937 rng(seed)` once and draw 3 indices with `std::uniform_int_distribution<int>(0, n-1)`; redraw until they are distinct.",
+           "Plane from 3 points: n = (p2-p1) x (p3-p1). If |n| is ~0 the sample is collinear, so skip it. Otherwise normalise and d = -n.dot(p1).",
+           "Score = number of points with |n.dot(p) + d| <= thresh; keep the best. Optional: refit the best inlier set with least squares (centroid + smallest eigenvector), then recompute inliers.",
+           "Return false if n < 3, or if no non-degenerate sample was found in `iters` tries."]}

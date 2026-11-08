@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SLAM Practice</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css" />
+  <link rel="stylesheet" id="hljs-theme" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2322c55e'/><text x='16' y='22' font-family='monospace' font-size='15' font-weight='700' text-anchor='middle' fill='%23051b0d'>{}</text></svg>" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand" id="brand" title="Dashboard">
+      <span class="logo">{}</span><span class="brand-text">SLAM<span class="slash">//</span>Practice</span>
+    </div>
+    <nav class="tracks" id="trackTabs"></nav>
+    <div class="topbar-spacer"></div>
+    <div class="overall" id="overall" title="Overall progress">
+      <div class="overall-bar"><div class="overall-fill" id="overallFill"></div></div>
+      <span id="overallText">0/0</span>
+    </div>
+    <div class="timer" id="timer" title="Time on this problem (click to pause/resume)">
+      <span class="timer-icon">⏱</span><span id="timerText">00:00</span><span class="timer-target" id="timerTarget"></span>
+    </div>
+    <div class="mock-clock hidden" id="mockClock" title="Mock interview time remaining"></div>
+    <button class="btn ghost" id="scratchBtn" title="Free-form C++ playground with its own main()">Scratchpad</button>
+    <button class="btn accent" id="mockBtn">Mock Interview</button>
+    <button class="icon-btn" id="themeBtn" title="Toggle theme">◐</button>
+  </header>
+
+  <div class="layout" id="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="search-wrap"><input id="search" placeholder="Search problems… (/)" autocomplete="off" /></div>
+      <div class="mock-panel hidden" id="mockPanel"></div>
+      <div class="module-list" id="moduleList"></div>
+    </aside>
+    <div class="gutter gutter-v" data-target="sidebar"></div>
+
+    <section class="pane problem-pane" id="problemPane">
+      <div class="tabs" id="probTabs">
+        <button class="tab active" data-tab="desc">Description</button>
+        <button class="tab" data-tab="notes">Notes</button>
+        <button class="tab" data-tab="hints">Hints</button>
+        <button class="tab" data-tab="solution">Editorial</button>
+      </div>
+      <div class="pane-body md" id="probBody"></div>
+    </section>
+    <div class="gutter gutter-v" data-target="problemPane"></div>
+
+    <section class="pane work-pane" id="workPane">
+      <div class="editor-toolbar" id="editorToolbar">
+        <span class="lang-chip">C++17 · g++ 11 · ASan+UBSan</span>
+        <span class="file-name" id="fileName"></span>
+        <span class="save-state" id="saveState"></span>
+        <div class="toolbar-spacer"></div>
+        <button class="btn ghost small" id="resetBtn" title="Reset to starter code">↺ Reset</button>
+        <button class="btn small" id="runBtn" title="Run public tests (Ctrl+Enter)">▶ Run</button>
+        <button class="btn primary small" id="submitBtn" title="Submit: public + hidden tests (Ctrl+Shift+Enter)">Submit</button>
+      </div>
+      <div class="editor-wrap" id="editorWrap"><div id="editor"></div></div>
+      <div class="quiz-wrap hidden" id="quizWrap"></div>
+      <div class="gutter gutter-h" id="consoleGutter"></div>
+      <div class="console" id="console">
+        <div class="tabs console-tabs">
+          <button class="tab active" data-ctab="results">Test Results</button>
+          <button class="tab" data-ctab="output">Output</button>
+          <button class="tab" data-ctab="terminal">Terminal</button>
+          <div class="toolbar-spacer"></div>
+          <span class="status-chip" id="statusChip"></span>
+        </div>
+        <div class="console-body" id="cResults"><div class="muted pad">Run your code to see results. <kbd>Ctrl</kbd>+<kbd>Enter</kbd> runs public tests; <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Enter</kbd> submits.</div></div>
+        <div class="console-body mono hidden" id="cOutput"><div class="muted pad">Compiler and program output appear here.</div></div>
+        <div class="console-body mono hidden terminal" id="cTerminal">
+          <div id="termLog"></div>
+          <div class="term-line"><span class="term-prompt" id="termPrompt">$</span><input id="termInput" spellcheck="false" autocomplete="off" /></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal hidden" id="modal"><div class="modal-card" id="modalCard"></div></div>
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+{"title": "Predict the Output: array, deque, list, pair, tuple", "track": "cpp", "module": "M03", "order": 1,
+ "type": "quiz", "difficulty": "Easy", "target_min": 8, "tags": ["array", "deque", "list", "pair", "tuple", "structured bindings"],
+ "hints": ["`std::array` is an aggregate: it copies by value and never decays to a pointer.", "Each container has its own invalidation rules. deque and list differ the most from vector."]}

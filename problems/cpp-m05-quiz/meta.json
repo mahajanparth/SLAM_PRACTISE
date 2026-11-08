@@ -1,0 +1,3 @@
+{"title": "Predict the Output: set, unordered_set, multiset", "track": "cpp", "module": "M05", "order": 1,
+ "type": "quiz", "difficulty": "Easy", "target_min": 8, "tags": ["set", "multiset", "unordered_set", "comparators"],
+ "hints": ["`multiset::erase(value)` erases every copy.", "Set elements are const: changing one would break the tree's ordering."]}

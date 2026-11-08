@@ -1,0 +1,19 @@
+{
+ "title": "Design: Map / Keyframe / MapPoint Ownership",
+ "track": "slam",
+ "module": "S1",
+ "order": 6,
+ "type": "quiz",
+ "difficulty": "Medium",
+ "target_min": 8,
+ "tags": [
+  "smart-pointers",
+  "weak_ptr",
+  "design",
+  "slam-map"
+ ],
+ "hints": [
+  "Draw the graph: who owns whom? Where is there a cycle?",
+  "Consider storing IDs into owning containers instead of pointers."
+ ]
+}

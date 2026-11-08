@@ -1,0 +1,70 @@
+{
+ "questions": [
+  {
+   "prompt": "What is wrong with this design?\n```cpp\nstruct Keyframe { std::vector<std::shared_ptr<MapPoint>> observed; };\nstruct MapPoint { std::vector<std::shared_ptr<Keyframe>> observers; };\n```",
+   "options": [
+    "Nothing",
+    "Double free when Map is destroyed",
+    "Compile error: incomplete types in shared_ptr",
+    "Reference cycle: a keyframe and the point it observes keep each other's refcount ≥ 1, so neither is ever freed even after `Map` erases both (leak)"
+   ],
+   "answer": 3,
+   "explanation": "`shared_ptr` both ways forms a cycle. Erasing from the `Map` drops one count but the mutual references keep both alive forever (LeakSanitizer reports it). Break it with `weak_ptr` in one direction (usually the back-reference `MapPoint → Keyframe`), or avoid pointers altogether with IDs."
+  },
+  {
+   "prompt": "With `std::vector<std::weak_ptr<Keyframe>> observers;` in `MapPoint`, how do you safely use an observer?",
+   "options": [
+    "`observers[i]->pose`",
+    "`*observers[i]`",
+    "`if (auto kf = observers[i].lock()) { use(kf->pose); }`, because the keyframe may have been culled",
+    "`observers[i].get()->pose`"
+   ],
+   "answer": 2,
+   "explanation": "`weak_ptr` has no `operator->`. `lock()` atomically returns a `shared_ptr` that is null if the object expired, and keeps it alive while you use it. Check `expired()` only as a hint: it can race with another thread releasing the object."
+  },
+  {
+   "prompt": "Many SLAM systems use integer IDs (`std::vector<int> observed_point_ids;`) into arenas owned by `Map` instead of pointers. Which is **not** an advantage?",
+   "options": [
+    "No ownership cycles; lifetime is managed in one place",
+    "Accessing a deleted point via its ID is automatically impossible, with no extra checks needed",
+    "Cache-friendly contiguous storage, and trivially serializable / copyable for a background optimizer thread",
+    "Cheap to store (4 bytes vs 16 for a shared_ptr)"
+   ],
+   "answer": 1,
+   "explanation": "IDs don't magically prevent stale access: a culled point's ID must still be checked (`map.points.count(id)`, or generation counters / slot maps). Their real wins are a single owner, no refcount traffic, cache locality and easy serialization. ORB-SLAM-style raw-pointer graphs plus `bBad` flags are the risky version of this."
+  },
+  {
+   "prompt": "Is `std::shared_ptr` thread-safe?",
+   "options": [
+    "The **reference count** updates are atomic (copying/destroying different shared_ptr instances to the same object is safe), but access to the **pointee** is not synchronized, and neither is writing to the *same* shared_ptr instance from two threads",
+    "Fully: both the control block and the pointee",
+    "Not at all",
+    "Only with `make_shared`"
+   ],
+   "answer": 0,
+   "explanation": "The control block uses atomic increments, which costs atomic traffic on every copy, so pass `const std::shared_ptr<T>&` or a raw `T*`/`T&` to functions that don't take ownership. Mutating a `MapPoint`'s position while the optimizer reads it still needs a mutex."
+  },
+  {
+   "prompt": "Why prefer `std::make_shared<MapPoint>(...)` over `std::shared_ptr<MapPoint>(new MapPoint(...))`?",
+   "options": [
+    "They are identical",
+    "make_shared returns a unique_ptr",
+    "make_shared supports custom deleters",
+    "One allocation for object + control block (better locality, fewer mallocs) and no leak if another argument's evaluation throws"
+   ],
+   "answer": 3,
+   "explanation": "`make_shared` co-allocates the control block and the object. Downside: with `weak_ptr`s still alive, the object's memory can't be freed until the last weak_ptr dies, because it shares the allocation with the control block."
+  },
+  {
+   "prompt": "Who should own a `Keyframe` if only the `Map` ever deletes it and other code only *looks* at it briefly?",
+   "options": [
+    "`shared_ptr` everywhere, to be safe",
+    "Raw `new` and `delete` in Map's destructor",
+    "`Map` holds `std::unique_ptr<Keyframe>` (or values in an arena); other code receives `Keyframe&` / `const Keyframe*` / an ID",
+    "`weak_ptr` in Map"
+   ],
+   "answer": 2,
+   "explanation": "Single owner means `unique_ptr`, with non-owning observers as raw references/pointers or IDs. `shared_ptr` is for genuinely shared ownership (e.g. a keyframe used by both the mapper and a loop-closure thread that may outlive the map's decision to cull it)."
+  }
+ ]
+}

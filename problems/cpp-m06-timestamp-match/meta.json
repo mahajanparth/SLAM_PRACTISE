@@ -1,0 +1,6 @@
+{"title": "Sensor Sync: lower_bound timestamp matching & stable_partition ground", "track": "cpp", "module": "M06", "order": 3,
+ "type": "code", "difficulty": "Medium", "target_min": 30, "tags": ["lower_bound", "binary search", "stable_partition", "two pointers"],
+ "hints": ["For lidar time t, `auto it = std::lower_bound(cam.begin(), cam.end(), t);` is the first cam stamp ≥ t. The only other candidate is `std::prev(it)`, if `it != cam.begin()`.",
+           "Compare `t - *prev` with `*it - t`, using `<=` so the earlier camera wins ties. Handle `it == end()` (only prev) and `it == begin()` (only it).",
+           "Both inputs are sorted, so a single forward-moving pointer into `cam` also works in O(n + m). Mention it, since it's the expected follow-up.",
+           "partitionGround: `std::stable_partition(c.begin(), c.end(), pred)` returns the partition point. The ground count is `it - c.begin()`. `std::partition` is faster but scrambles order."]}

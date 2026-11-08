@@ -1,0 +1,92 @@
+{
+ "questions": [
+  {
+   "prompt": "Output?\n```cpp\nstd::multiset<double> r = {1.5, 2.0, 2.0, 2.0, 3.0};\nr.erase(2.0);\nstd::cout << r.size();\n```",
+   "options": [
+    "2",
+    "4",
+    "5",
+    "Compile error"
+   ],
+   "answer": 0,
+   "explanation": "`erase(key)` removes **every** element equal to the key and returns how many it removed (3). To remove just one copy, write `r.erase(r.find(2.0))` after checking that `find` didn't return `end()`. This is the classic bug in sliding-window medians."
+  },
+  {
+   "prompt": "Output?\n```cpp\nstd::set<int> ids = {7, 3, 9, 3, 1};\nfor (int i : ids) std::cout << i;\n```",
+   "options": [
+    "73931",
+    "7391",
+    "Unspecified order",
+    "1379"
+   ],
+   "answer": 3,
+   "explanation": "`std::set` is a red-black tree with no duplicates, and in-order iteration is ascending. Building a set from a vector is therefore a one-liner sort + dedup, at O(n log n) with a heap node per element. For a one-off job, `sort` + `unique` + `erase` on the vector is usually faster."
+  },
+  {
+   "prompt": "Why doesn't this compile?\n```cpp\nstd::set<int> s = {1, 2, 3};\nauto it = s.find(2);\n*it = 10;\n```",
+   "options": [
+    "`find` returns a `const_iterator` only for const sets",
+    "Set elements are immutable (`*it` is `const int&`): changing one in place would break the tree's ordering invariant",
+    "`find` returns `bool`",
+    "It compiles"
+   ],
+   "answer": 1,
+   "explanation": "Keys in `set`/`map` are const. To change one, `erase` it and `insert` the new value (or use C++17 `extract` → modify the node → `insert`, which avoids reallocating the node)."
+  },
+  {
+   "prompt": "What does `auto [it, ok] = seen.insert(42);` give you on a `std::unordered_set<int> seen` that already contains 42?",
+   "options": [
+    "`ok == true`, and a second 42 is stored",
+    "Throws",
+    "`ok == false`, and `it` points to the existing 42",
+    "`it == seen.end()`"
+   ],
+   "answer": 2,
+   "explanation": "`insert` returns `pair<iterator, bool>`. The bool tells you whether the insert happened. That gives you a single-lookup \"seen before?\" test: `if (!seen.insert(id).second) /* duplicate */`. Calling `count` and then `insert` hashes twice."
+  },
+  {
+   "prompt": "Spot the bug:\n```cpp\nstruct ByRange {\n  bool operator()(const Point3& a, const Point3& b) const {\n    return norm(a) <= norm(b);\n  }\n};\nstd::set<Point3, ByRange> s;\n```",
+   "options": [
+    "None",
+    "Comparator must be a free function",
+    "Point3 needs `operator<`",
+    "`<=` is not a strict weak ordering: comp(a,a) is true, so equivalence and lookup break (UB)"
+   ],
+   "answer": 3,
+   "explanation": "Ordered containers and `std::sort` need a **strict** weak ordering, so `comp(a, a)` must be false. The set treats a and b as equivalent when `!comp(a,b) && !comp(b,a)`. With `<=` that's never true, so `find` fails and duplicates sneak in. `std::sort` with `<=` can even read out of bounds. Also note that points with equal range are 'equal' for this set, so only one of them is kept."
+  },
+  {
+   "prompt": "Two frames' feature ids are stored as `std::set<int> a, b`. What is the complexity of `std::set_intersection(a.begin(), a.end(), b.begin(), b.end(), back_inserter(out))`?",
+   "options": [
+    "O(|a| + |b|)",
+    "O(|a| · |b|)",
+    "O(|a| log |b|)",
+    "O(1)"
+   ],
+   "answer": 0,
+   "explanation": "The set algorithms walk two **sorted** ranges in lockstep, like the merge step of mergesort, so the cost is linear. They work on any sorted range, including sorted vectors. Passing unsorted input is UB and gives garbage."
+  },
+  {
+   "prompt": "You need to answer \"is voxel (i,j,k) already occupied?\" for 10⁶ points. Which is usually fastest?",
+   "options": [
+    "`std::set<std::tuple<int,int,int>>`",
+    "`std::unordered_set<VoxelKey, VoxelHash>` (reserved)",
+    "`std::vector<std::tuple<int,int,int>>` + linear `std::find`",
+    "`std::multiset<VoxelKey>`"
+   ],
+   "answer": 1,
+   "explanation": "Hashing gives average O(1) per query after `reserve`, versus O(log n) pointer chasing in a tree, and a linear find is O(n) per query. `std::tuple` has `operator<` but **no** `std::hash`, so you write the hash yourself or pack the key into a 64-bit integer."
+  },
+  {
+   "prompt": "Output?\n```cpp\nstd::multiset<int> m = {5, 1, 5, 3, 5};\nauto [lo, hi] = m.equal_range(5);\nstd::cout << std::distance(lo, hi) << *m.lower_bound(4);\n```",
+   "options": [
+    "15",
+    "35",
+    "33",
+    "34"
+   ],
+   "answer": 1,
+   "explanation": "`equal_range(5)` returns the [first ≥ 5, first > 5) range, which holds three 5s. `lower_bound(4)` is the first element ≥ 4, which is 5. `m.count(5)` also gives 3, but it's O(log n + count), not O(log n)."
+  }
+ ]
+}

@@ -1,0 +1,6 @@
+{"title": "Scan Buffer: self-safe append & k-way merge with one allocation", "track": "cpp", "module": "M02", "order": 3,
+ "type": "code", "difficulty": "Medium", "target_min": 25, "tags": ["vector", "reserve", "capacity", "aliasing", "k-way merge"],
+ "hints": ["appendScan: save `n = src.size()` **before** you touch `dst`, call `dst.reserve(dst.size() + n)`, then push `src[i]` for `i < n` by **index**. If `src` is `dst`, indices stay valid after the reallocation, but references and iterators would not.",
+           "mergeSorted: sum the sizes, `reserve` once, then fill. A capacity equal to size proves you never grew geometrically.",
+           "k-way merge: a min-heap (`std::priority_queue` with `std::greater<>`) of `(t, scan index, element index)` tuples. Pop the smallest, push its successor from the same scan. The tuple ordering gives you the tie-break for free.",
+           "Simpler O(N log N) alternative: append everything in scan order, then `std::stable_sort` by t. stable_sort keeps the scan-then-index tie order."]}

@@ -1,0 +1,3 @@
+{"title": "Predict the Output: Stack, Heap, new/delete, RAII, Alignment", "track": "cpp", "module": "M10", "order": 1,
+ "type": "quiz", "difficulty": "Easy", "target_min": 7, "tags": ["memory", "new-delete", "raii", "alignment", "stack-vs-heap"],
+ "hints": ["Match every allocation form with its exact deallocation form: new/delete, new[]/delete[], malloc/free.", "sizeof includes padding so that every element of an array is aligned."]}

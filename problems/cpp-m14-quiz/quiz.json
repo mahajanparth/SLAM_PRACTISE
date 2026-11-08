@@ -1,0 +1,92 @@
+{
+ "questions": [
+  {
+   "prompt": "Output?\n```cpp\nvoid print(Sensor s) { std::cout << s.name() << \" \"; }\nvoid printRef(const Sensor& s) { std::cout << s.name(); }\n\nLidar l;\nprint(l);\nprintRef(l);\n```",
+   "options": [
+    "lidar lidar",
+    "sensor lidar",
+    "sensor sensor",
+    "lidar sensor"
+   ],
+   "answer": 1,
+   "explanation": "`print` takes `Sensor` **by value**, so the `Lidar` is *sliced*: a brand-new `Sensor` is copy-constructed from the base part, and its vptr points to `Sensor`'s vtable. `printRef` binds a reference to the original object, so dispatch reaches `Lidar::name`. Rule: polymorphism needs a reference or a pointer."
+  },
+  {
+   "prompt": "What is the problem?\n```cpp\nstruct Filter { ~Filter() {} virtual void apply() {} };\nstruct Voxel : Filter { std::vector<int> grid = std::vector<int>(1000); };\n\nFilter* f = new Voxel;\ndelete f;\n```",
+   "options": [
+    "Nothing, `grid` is freed automatically",
+    "Compile error: cannot delete through a base pointer",
+    "Double free of `grid`",
+    "Undefined behaviour: `~Filter` is not virtual, so `~Voxel` (and `grid`'s destructor) never runs"
+   ],
+   "answer": 3,
+   "explanation": "`delete` on a `Filter*` calls the destructor through the **static** type unless it is virtual. Formally that is UB. In practice the vector's buffer leaks, and ASan reports `new-delete-type-mismatch` because the sizes differ. Any class with virtual functions that is deleted through a base pointer needs `virtual ~Base() = default;`."
+  },
+  {
+   "prompt": "Which line is a compile error thanks to `override`?\n```cpp\nstruct Factor {\n  virtual ~Factor() = default;\n  virtual double error(const std::vector<double>& x) const = 0;\n};\nstruct Prior : Factor {\n  double error(const std::vector<double>& x) override;       // (A)\n};\nstruct Between : Factor {\n  double error(const std::vector<double>& x) const override; // (B)\n};\n```",
+   "options": [
+    "Only (A)",
+    "Only (B)",
+    "Both",
+    "Neither"
+   ],
+   "answer": 0,
+   "explanation": "(A) is missing `const`, so it does not match the base signature and therefore overrides nothing. With `override`, that is a compile error. Without `override`, (A) would silently declare a *new* function, `Prior` would stay abstract, and you would only find out later, with a confusing message."
+  },
+  {
+   "prompt": "Output?\n```cpp\nstruct Base {\n  Base() { hello(); }\n  virtual ~Base() = default;\n  virtual void hello() const { std::cout << \"base \"; }\n};\nstruct Cam : Base {\n  void hello() const override { std::cout << \"cam \"; }\n};\nCam c;\nc.hello();\n```",
+   "options": [
+    "cam cam",
+    "base base",
+    "base cam",
+    "Undefined behaviour"
+   ],
+   "answer": 2,
+   "explanation": "While `Base`'s constructor runs, the object *is* a `Base`: its vptr points to `Base`'s vtable, because `Cam`'s members don't exist yet. A virtual call inside a constructor or destructor never reaches the more-derived override. If `hello` were pure virtual, you would get a \"pure virtual method called\" abort."
+  },
+  {
+   "prompt": "On a typical 64-bit compiler, what are `sizeof(A)` and `sizeof(B)`?\n```cpp\nstruct A { double x; void f(); };\nstruct B { double x; virtual void f(); };\n```",
+   "options": [
+    "8 and 8",
+    "16 and 16",
+    "8 and 24",
+    "8 and 16"
+   ],
+   "answer": 3,
+   "explanation": "Non-virtual member functions cost nothing per object. The first virtual function adds a hidden **vptr** (8 bytes) to every object, so `B` is 16 bytes. The vtable itself is one static table per class, shared by all objects. This matters for `std::vector<Point>` with millions of points, so keep per-point types non-polymorphic."
+  },
+  {
+   "prompt": "Output?\n```cpp\nstruct Logger {\n  virtual ~Logger() = default;\n  virtual void log(int level = 1) const { std::cout << \"L\" << level << \" \"; }\n};\nstruct FileLogger : Logger {\n  void log(int level = 2) const override { std::cout << \"F\" << level << \" \"; }\n};\nFileLogger fl;\nconst Logger& l = fl;\nl.log();\nfl.log();\n```",
+   "options": [
+    "F2 F2",
+    "L1 F2",
+    "F1 F2",
+    "F1 F1"
+   ],
+   "answer": 2,
+   "explanation": "The *function* is chosen dynamically (`FileLogger::log` both times), but **default arguments are bound statically** from the type of the expression. Through `const Logger&`, the default is 1. Never give overrides different default arguments."
+  },
+  {
+   "prompt": "You need to deep-copy a `std::vector<std::unique_ptr<Factor>>` (Factor is abstract). Which approach works?",
+   "options": [
+    "Add `virtual std::unique_ptr<Factor> clone() const = 0;` and push `f->clone()` for each element",
+    "`auto copy = graph;`",
+    "`std::vector<std::unique_ptr<Factor>> copy(graph.begin(), graph.end());`",
+    "`copy.push_back(std::make_unique<Factor>(*f));`"
+   ],
+   "answer": 0,
+   "explanation": "`unique_ptr` is move-only, so neither `auto copy = graph;` nor the iterator-range constructor compiles. `std::make_unique<Factor>(*f)` can't instantiate an abstract class, and it would slice even if `Factor` were concrete. Only the object knows its own dynamic type, so a virtual `clone()` (the \"virtual copy constructor\" idiom) does `return std::make_unique<Prior>(*this);` in each derived class."
+  },
+  {
+   "prompt": "What does this print?\n```cpp\nstruct Map { void insert(int) { std::cout << \"int \"; } void insert(double) { std::cout << \"double \"; } };\nstruct VoxelMap : Map { void insert(double) { std::cout << \"voxel \"; } };\nVoxelMap m;\nm.insert(3);\n```",
+   "options": [
+    "int",
+    "double",
+    "voxel",
+    "Ambiguous call: compile error"
+   ],
+   "answer": 2,
+   "explanation": "**Name hiding**: declaring any `insert` in `VoxelMap` hides *all* `Map::insert` overloads. Lookup stops at the derived scope, finds only `insert(double)`, and converts 3 to 3.0. Add `using Map::insert;` in `VoxelMap` to bring the base overloads back. (Nothing here is virtual, and that is the point.)"
+  }
+ ]
+}

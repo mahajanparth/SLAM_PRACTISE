@@ -1,0 +1,5 @@
+{"title": "Re-orthonormalize a Drifting Rotation", "track": "slam", "module": "S2", "order": 6,
+ "type": "code", "difficulty": "Easy", "target_min": 6, "tags": ["svd", "so3", "procrustes"],
+ "hints": ["The closest orthogonal matrix in Frobenius norm comes from the SVD M = U Σ Vᵀ: Q = U Vᵀ.",
+           "U Vᵀ can have det = −1 (a reflection). Then flip the sign of the last column of U (the one paired with the smallest singular value): R = U diag(1, 1, det(U Vᵀ)) Vᵀ.",
+           "Eigen: `Eigen::JacobiSVD<Eigen::Matrix3d> svd(M, Eigen::ComputeFullU | Eigen::ComputeFullV);` Singular values are sorted in decreasing order."]}

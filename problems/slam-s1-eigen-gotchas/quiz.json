@@ -1,0 +1,81 @@
+{
+ "questions": [
+  {
+   "prompt": "Line **(a)**: `std::vector<Pose>` where `Pose` holds a `Vector4d`. What was the classic problem, and what fixes it?",
+   "options": [
+    "`Vector4d` is not copyable, so it won't compile",
+    "Pre-C++17, `std::allocator` and `new` only guaranteed 8/16-byte alignment, not the 16/32 bytes Eigen's SIMD loads require, so you got an unaligned-assert crash. Fix: `Eigen::aligned_allocator<Pose>` + `EIGEN_MAKE_ALIGNED_OPERATOR_NEW`, or compile as C++17 (aligned `new`)",
+    "The vector stores references, so they dangle",
+    "Nothing; `Vector4d` is never vectorized"
+   ],
+   "answer": 1,
+   "explanation": "Fixed-size vectorizable types (`Vector2d`, `Vector4d`, `Matrix2d`, `Matrix4d`, `Quaterniond`, `Isometry3d`...) are aligned for SSE/AVX. Before C++17, heap allocation ignored over-alignment, so Eigen asserted at runtime. C++17's `operator new(size_t, align_val_t)` fixes `new` and `std::vector`. `Vector3d` (24 B) is not vectorizable, so it never had this problem."
+  },
+  {
+   "prompt": "Line **(b)**: `A = A.transpose();` What happens?",
+   "options": [
+    "Aliasing: the destination is written while it is still being read, so you can get a partly-transposed matrix (Eigen asserts in debug). Use `A.transposeInPlace()` or `A = A.transpose().eval()`",
+    "Works fine, Eigen detects it",
+    "Compile error",
+    "It creates a dangling reference"
+   ],
+   "answer": 0,
+   "explanation": "`transpose()` is a lazy view of `A`'s memory. Assigning it to `A` copies coefficient by coefficient, so `A(0,1)` gets overwritten before it is read to fill `A(1,0)`. For dynamic sizes Eigen catches this with a debug-mode assertion. The same applies to `a = a.reverse()` etc. Matrix **products** are the exception: Eigen evaluates them into a temporary by default."
+  },
+  {
+   "prompt": "Line **(c)**: `auto C = A * A;` then `A` is modified, then `C` is used. What does `C` contain?",
+   "options": [
+    "The product of the original A",
+    "Compile error",
+    "Zero",
+    "The product computed from the **current** A each time C is used (lazy expression), or a dangling reference if the operands were temporaries"
+   ],
+   "answer": 3,
+   "explanation": "`auto` deduces `Product<MatrixXd, MatrixXd>`, an expression that stores *references* to its operands. It is evaluated when used, so it sees the modified `A`. If an operand was a temporary (e.g. `auto C = A * B.transpose().eval();`), it dangles and ASan reports use-after-free. Fix: `Eigen::MatrixXd C = A * A;` or `auto C = (A * A).eval();`."
+  },
+  {
+   "prompt": "Line **(d)**: `Eigen::Matrix3d M; M.block<2,2>(0,0) = Identity;` What are `M(2,2)` and `M(0,2)`?",
+   "options": [
+    "0 and 0",
+    "1 and 0",
+    "Uninitialized garbage: only the top-left 2×2 block was written",
+    "Compile error: block size must be dynamic"
+   ],
+   "answer": 2,
+   "explanation": "Fixed-size Eigen matrices are not zero-initialized. Initialize with `Matrix3d M = Matrix3d::Zero();` (or `setIdentity()`) before writing blocks. A typical bug: building a 4×4 `T` with only `T.block<3,3>(0,0) = R; T.block<3,1>(0,3) = t;` and forgetting the last row `[0 0 0 1]`."
+  },
+  {
+   "prompt": "Line **(e)**: `v(3) = 1;` on a `Vector3d`. What happens?",
+   "options": [
+    "Eigen resizes v to 4",
+    "Out of bounds: `eigen_assert` aborts in a debug build; with `-DNDEBUG` it silently writes past the object (UB, stack corruption)",
+    "Always throws `std::out_of_range`",
+    "Writes to v(0) (wrap-around)"
+   ],
+   "answer": 1,
+   "explanation": "Eigen's range checks are `eigen_assert`s, which `NDEBUG` disables. Release builds don't catch out-of-range indexing, so test in debug + ASan. Eigen never throws on indexing."
+  },
+  {
+   "prompt": "When is `C.noalias() = A * B;` correct?",
+   "options": [
+    "Only when C is not A or B (and doesn't overlap them). It skips the temporary that Eigen otherwise creates for products",
+    "Always; it's just faster",
+    "Only for fixed-size matrices",
+    "Only when A and B are square"
+   ],
+   "answer": 0,
+   "explanation": "By default Eigen assumes a product *may* alias and evaluates it into a temporary first. `noalias()` promises no overlap and writes directly into C, which saves a malloc for dynamic sizes. `A.noalias() = A * B` silently produces garbage."
+  },
+  {
+   "prompt": "What is the main **benefit** of Eigen's expression templates?",
+   "options": [
+    "They make compile errors shorter",
+    "They enable runtime sizes",
+    "They make all operations thread-safe",
+    "`D = A + B + C;` compiles into a single loop with no intermediate temporaries (lazy evaluation fuses coefficient-wise ops)"
+   ],
+   "answer": 3,
+   "explanation": "`A + B` returns a lightweight `CwiseBinaryOp` and only the final assignment runs the loop, fused and vectorized. That's why `auto` is dangerous, and why `.eval()` exists when you *want* a temporary (for example to break aliasing)."
+  }
+ ]
+}

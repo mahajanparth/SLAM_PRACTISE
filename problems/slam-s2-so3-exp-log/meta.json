@@ -1,0 +1,6 @@
+{"title": "SO(3) exp and log", "track": "slam", "module": "S2", "order": 3,
+ "type": "code", "difficulty": "Medium", "target_min": 15, "tags": ["so3", "lie-group", "rodrigues", "numerics"],
+ "hints": ["Rodrigues: R = I + (sinθ/θ) K + ((1 − cosθ)/θ²) K², with K = skew(w), θ = |w|.",
+           "Small angles: for θ < ~1e-8 use the Taylor expansion R ≈ I + K + ½K² (exp) and w ≈ ½ vee(R − Rᵀ) (log).",
+           "log: θ = acos((tr R − 1)/2) — CLAMP the argument to [−1, 1] (or use atan2(½|vee(R−Rᵀ)|, (tr−1)/2)). Then w = θ/(2 sinθ) · vee(R − Rᵀ).",
+           "Near π, sinθ ≈ 0 and vee(R−Rᵀ) ≈ 0, so the axis is lost. Use ½(R + Rᵀ) = cosθ·I + (1−cosθ)·aaᵀ: take the column with the largest diagonal entry of aaᵀ, normalize it, and choose its sign to agree with vee(R − Rᵀ)."]}

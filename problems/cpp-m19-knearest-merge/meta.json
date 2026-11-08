@@ -1,0 +1,6 @@
+{"title": "k-Nearest Points & k-Way Sensor Merge with priority_queue", "track": "cpp", "module": "M19", "order": 2,
+ "type": "code", "difficulty": "Easy", "target_min": 20, "tags": ["priority_queue", "comparator", "heap", "k-way merge"],
+ "hints": ["kNearest: a MAX-heap of `std::pair<double,int>` (squared distance, index) of size ≤ k. Its top is the worst of the current best k.",
+           "Push while size < k; otherwise replace the top only if `std::make_pair(d2, i) < heap.top()`. Comparing pairs gives the index tie-break for free.",
+           "Pop everything into a vector (worst first) and `std::reverse` it.",
+           "mergeStreams: min-heap of `std::tuple<double, std::size_t, std::size_t>` = (t, stream, position) with `std::greater<>`; pop the smallest, then push the next element from the same stream."]}

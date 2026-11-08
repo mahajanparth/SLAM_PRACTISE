@@ -1,0 +1,81 @@
+{
+ "questions": [
+  {
+   "prompt": "What is the main difference between `Eigen::Matrix3d` and `Eigen::MatrixXd` holding a 3×3 matrix?",
+   "options": [
+    "None: `Matrix3d` is a typedef of `MatrixXd`",
+    "`Matrix3d` stores its 9 doubles inline (stack, no malloc) with a compile-time size, so ops can be unrolled; `MatrixXd` stores a pointer to heap memory with a runtime size",
+    "`Matrix3d` is row-major, `MatrixXd` is column-major",
+    "`MatrixXd` is faster because it is vectorized and `Matrix3d` is not"
+   ],
+   "answer": 1,
+   "explanation": "`Matrix<double,3,3>` is a 72-byte value type, so copies are memcpys and loops unroll at compile time. `Matrix<double,Dynamic,Dynamic>` stores `{double*, rows, cols}` and every temporary costs a `malloc`. In tight SLAM loops (per-point Jacobians) dynamic-size temporaries are a classic performance bug. Both types are column-major by default."
+  },
+  {
+   "prompt": "Which line fails to compile?\n```cpp\nclass Tracker {\n  int frames_ = 0;\n  mutable int cache_hits_ = 0;\n public:\n  int frames() const { return frames_; }          // (A)\n  void hit() const { ++cache_hits_; }             // (B)\n  void step() const { ++frames_; }                // (C)\n  void reset() { frames_ = 0; cache_hits_ = 0; }  // (D)\n};\n```",
+   "options": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "answer": 2,
+   "explanation": "Inside a `const` member function `this` is `const Tracker*`, so `++frames_` is an error. `mutable` members (caches, statistics, a `std::mutex`) are exempt, so (B) is fine. That's the standard pattern for a const getter that has to lock a mutex."
+  },
+  {
+   "prompt": "Output?\n```cpp\nstd::vector<Eigen::Vector3d> pts;\npts.reserve(100);\nstd::cout << pts.size() << \" \";\npts.resize(5);\nstd::cout << pts.size() << \" \" << (pts.capacity() >= 100);\n```",
+   "options": [
+    "100 5 1",
+    "0 5 0",
+    "0 100 1",
+    "0 5 1"
+   ],
+   "answer": 3,
+   "explanation": "`reserve` only allocates capacity: size stays 0 and no elements are constructed. `resize(5)` constructs 5 elements (a `Vector3d` is default-constructed, which means **uninitialized** coefficients). Capacity never shrinks on resize. Use `reserve` + `push_back`/`emplace_back` when you know the final count, so building a 1M-point cloud doesn't reallocate."
+  },
+  {
+   "prompt": "What does this print?\n```cpp\nstd::vector<double> a = {1, 2, 3};\nauto&& r = std::move(a);\nstd::cout << a.size();\n```",
+   "options": [
+    "0: `std::move` empties the vector",
+    "Undefined behaviour",
+    "3: `std::move` is only a cast; nothing has been moved from `a` yet",
+    "Compile error"
+   ],
+   "answer": 2,
+   "explanation": "`std::move(x)` is `static_cast<T&&>(x)`. It moves nothing by itself. Data is only stolen when the rvalue binds to a move constructor or move assignment, e.g. `std::vector<double> b = std::move(a);`. After an actual move, `a` is in a *valid but unspecified* state (in practice empty for `std::vector`)."
+  },
+  {
+   "prompt": "`Eigen::MatrixXd A(1000, 1000);` Which loop is cache-friendly?\n```cpp\n// (1)\nfor (int i = 0; i < A.rows(); ++i) for (int j = 0; j < A.cols(); ++j) s += A(i, j);\n// (2)\nfor (int j = 0; j < A.cols(); ++j) for (int i = 0; i < A.rows(); ++i) s += A(i, j);\n```",
+   "options": [
+    "(1), because C++ arrays are row-major",
+    "(2), because Eigen is column-major by default, so consecutive i are adjacent in memory",
+    "Both are the same",
+    "Neither; you must use `A.data()`"
+   ],
+   "answer": 1,
+   "explanation": "Eigen's default is **column-major**: `A(i,j)` lives at `data()[i + j*rows]`. The inner loop should run over rows. This is also why a point cloud stored as `Matrix3Xd` (one point per column) keeps each point's x,y,z contiguous. Sensor buffers are usually N×3 row-major, so map them as `Matrix<float,3,Dynamic>` or use `RowMajor` explicitly."
+  },
+  {
+   "prompt": "Why are fixed-size Eigen objects passed as `const Eigen::Vector3d&` / `const Eigen::Matrix4d&` rather than by value?",
+   "options": [
+    "To avoid copies, and because (pre-C++17 ABIs) by-value fixed-size *vectorizable* types like `Matrix4d` may not get the 16-byte alignment Eigen asserts on",
+    "Pass-by-value is a compile error for Eigen types",
+    "Because `const&` makes the function `constexpr`",
+    "Because Eigen types have no copy constructor"
+   ],
+   "answer": 0,
+   "explanation": "The Eigen docs say to pass fixed-size vectorizable types by reference. A by-value parameter on the stack isn't guaranteed to be aligned on all ABIs, which triggers the 'unaligned array assert'. `const&` also avoids copying 128 bytes for a `Matrix4d`. For generic code, take `const Eigen::MatrixBase<Derived>&` or `Eigen::Ref<const ...>`."
+  },
+  {
+   "prompt": "`Eigen::Vector3d v; std::cout << v.norm();` What is printed?",
+   "options": [
+    "0",
+    "nan, always",
+    "Compile error: v must be initialized",
+    "An unspecified value: fixed-size Eigen objects are **not** zero-initialized"
+   ],
+   "answer": 3,
+   "explanation": "Eigen's default constructors leave coefficients uninitialized for speed, the same as a raw `double[3]`. Write `Vector3d::Zero()`, `Matrix3d::Identity()` or `v.setZero()`. Defining `EIGEN_INITIALIZE_MATRICES_BY_ZERO` (or `..._BY_NAN` to catch bugs) changes that globally."
+  }
+ ]
+}

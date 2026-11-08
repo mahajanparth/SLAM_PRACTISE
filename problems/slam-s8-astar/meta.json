@@ -1,0 +1,6 @@
+{"title": "A* on an 8-Connected Occupancy Grid", "track": "slam", "module": "S8", "order": 6,
+ "type": "code", "difficulty": "Medium", "target_min": 15, "tags": ["a-star", "planning", "priority-queue", "grid"],
+ "hints": ["Index cells as id = r*cols + c. Keep g (best cost so far, init +inf) and parent arrays of size rows*cols.",
+           "Use std::priority_queue<std::pair<double,int>, std::vector<...>, std::greater<>> keyed on f = g + h. On pop, skip stale entries (a closed flag or f > g+h).",
+           "Octile heuristic: dx=|Δc|, dy=|Δr|, h = (max−min) + √2·min. It is admissible and consistent, so the first time you pop the goal its cost is optimal.",
+           "No corner cutting: for a diagonal move (dr,dc), require that both (r+dr, c) and (r, c+dc) are free. Reconstruct by following parent from the goal, then reverse."]}

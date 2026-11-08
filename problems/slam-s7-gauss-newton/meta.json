@@ -1,0 +1,6 @@
+{"title": "Gauss-Newton Curve Fit: y = exp(ax² + bx + c)", "track": "slam", "module": "S7", "order": 2,
+ "type": "code", "difficulty": "Medium", "target_min": 15, "tags": ["gauss-newton", "jacobian", "normal-equations", "curve-fitting"],
+ "hints": ["Residual rᵢ = yᵢ − exp(a xᵢ² + b xᵢ + cᵢ). Write the model value fᵢ first; every Jacobian entry reuses it.",
+           "∂rᵢ/∂(a,b,c) = −fᵢ·(xᵢ², xᵢ, 1). Accumulate H += JᵢᵀJᵢ (3×3) and g += Jᵢᵀrᵢ (3×1) in one pass. No need to build the N×3 J.",
+           "Step: Δ = H.ldlt().solve(−g). While cost(p+Δ) > cost(p), set Δ *= 0.5. Then params += Δ. Stop when Δ.norm() < 1e-10 (converged) or after max_iters.",
+           "Check the input first: sizes differ or fewer than 3 points means the problem is under-determined, so return init with converged = false."]}

@@ -1,0 +1,3 @@
+{"title": "Predict the Output: heaps, comparators, hashing", "track": "cpp", "module": "M19", "order": 1,
+ "type": "quiz", "difficulty": "Easy", "target_min": 8, "tags": ["priority_queue", "comparator", "hash", "unordered_map"],
+ "hints": ["priority_queue's comparator answers 'is a lower priority than b?'; the element that is greatest under it is on top.", "Equal keys must hash equal; distinct keys should rarely collide."]}

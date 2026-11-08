@@ -1,0 +1,92 @@
+{
+ "questions": [
+  {
+   "prompt": "What does this print?\n```cpp\nint hits = 0;\nstd::vector<std::thread> ts;\nfor (int t = 0; t < 4; ++t)\n  ts.emplace_back([&] { for (int i = 0; i < 100000; ++i) ++hits; });\nfor (auto& th : ts) th.join();\nstd::cout << hits;\n```",
+   "options": [
+    "Always 400000",
+    "Usually less than 400000: a data race, formally undefined behaviour",
+    "Always 100000",
+    "Compile error: can't capture by reference in a thread"
+   ],
+   "answer": 1,
+   "explanation": "`++hits` is a read-modify-write. Two threads can read the same old value, and one increment is lost. Formally, any unsynchronized concurrent write is a **data race, which is UB**: the optimizer may even hoist the counter into a register. Fix it with `std::atomic<int>` (`fetch_add`), a mutex, or better, per-thread local counts summed after `join()`."
+  },
+  {
+   "prompt": "What is wrong?\n```cpp\nstd::vector<std::thread> ts;\nstd::vector<double> partial(4);\nfor (int t = 0; t < 4; ++t)\n  ts.emplace_back([&] { partial[t] = sumChunk(t); });\nfor (auto& th : ts) th.join();\n```",
+   "options": [
+    "Nothing",
+    "`partial` must be atomic",
+    "Threads must be detached",
+    "`t` is captured by reference: threads may read a later value (even 4, which is out of bounds) and race on the loop variable"
+   ],
+   "answer": 3,
+   "explanation": "`[&]` captures the loop variable `t` **by reference**. By the time a thread runs, the loop may have incremented `t`, or finished with `t == 4` and indexed `partial[4]`. Capture by value: `[&, t]`. Writing to *distinct* elements of `partial` from different threads is fine (different memory locations), apart from possible false sharing."
+  },
+  {
+   "prompt": "What happens when `run()` returns?\n```cpp\nvoid run() {\n  std::thread worker([] { processScan(); });\n  if (!ok()) return;\n  worker.join();\n}\n```",
+   "options": [
+    "If `ok()` is false, the destructor of a still-joinable `std::thread` calls `std::terminate`",
+    "The worker keeps running in the background",
+    "The destructor joins automatically",
+    "Undefined behaviour only if `processScan` throws"
+   ],
+   "answer": 0,
+   "explanation": "A `std::thread` that is still **joinable** at destruction calls `std::terminate()`. Every path, including early returns and exceptions, must `join()` or `detach()`. Use an RAII guard, or C++20 `std::jthread`, which joins in its destructor."
+  },
+  {
+   "prompt": "Two threads run `transfer(a, b)` and `transfer(b, a)` at the same time. What can happen?\n```cpp\nvoid transfer(Map& from, Map& to) {\n  std::lock_guard<std::mutex> l1(from.m);\n  std::lock_guard<std::mutex> l2(to.m);\n  /* move landmarks */\n}\n```",
+   "options": [
+    "Nothing bad, mutexes serialize everything",
+    "Data race",
+    "Deadlock: each thread holds one mutex and waits forever for the other",
+    "std::system_error is thrown"
+   ],
+   "answer": 2,
+   "explanation": "Thread 1 holds `a.m` and wants `b.m`, while thread 2 holds `b.m` and wants `a.m`. That is the classic lock-ordering **deadlock**. Fix it with `std::scoped_lock lk(from.m, to.m);` (C++17), which uses a deadlock-avoidance algorithm, or by always locking in a global order (e.g. by address or id)."
+  },
+  {
+   "prompt": "Which is the correct consumer wait?\n```cpp\nstd::unique_lock<std::mutex> lk(m);\n// (A) if (q.empty()) cv.wait(lk);\n// (B) while (q.empty()) cv.wait(lk);\n// (C) cv.wait(lk, [&]{ return !q.empty(); });\n// (D) cv.wait(lk); // producer always notifies after pushing\n```",
+   "options": [
+    "A only",
+    "B and C",
+    "C only",
+    "D"
+   ],
+   "answer": 1,
+   "explanation": "Condition variables have **spurious wakeups**, and another consumer may take the item first, so the condition must be re-checked in a loop. (B) and (C) are equivalent; the predicate overload is exactly that loop. (A) checks only once. (D) can also **lose a wakeup**: if the push and notify happen before this thread starts waiting, it sleeps forever."
+  },
+  {
+   "prompt": "A producer pushes and notifies. Is this consumer correct?\n```cpp\n// producer\nready = true;               // plain bool, no lock\ncv.notify_one();\n// consumer\nstd::unique_lock<std::mutex> lk(m);\ncv.wait(lk, [&]{ return ready; });\n```",
+   "options": [
+    "Yes",
+    "No: notify_one must be called while holding the lock",
+    "No: must use notify_all",
+    "No: `ready` is written without holding `m`. That is a data race, and the notify can slip in between the consumer's check and its sleep (lost wakeup)"
+   ],
+   "answer": 3,
+   "explanation": "The predicate state must be modified **under the same mutex**, even if it were atomic. Otherwise the consumer can check `ready == false`, the producer sets it and notifies, and only then the consumer blocks, so it never wakes up. Calling notify after releasing the lock is fine, and often slightly faster."
+  },
+  {
+   "prompt": "Four threads each increment their own counter 10⁷ times. Why might (A) be several times slower than (B)?\n```cpp\n// (A)\nstd::array<std::atomic<long>, 4> counts;            // adjacent\n// (B)\nstruct alignas(64) Slot { std::atomic<long> c; };\nstd::array<Slot, 4> counts;\n```",
+   "options": [
+    "False sharing: all four counters share one 64-byte cache line, which bounces between cores on every write",
+    "Atomics are slower in arrays",
+    "alignas makes atomics lock-free",
+    "(A) is a data race"
+   ],
+   "answer": 0,
+   "explanation": "There is no logical sharing, but cache coherence works on whole **cache lines** (64 B). Every write invalidates the line in the other cores' caches. Padding each counter to its own line (or `std::hardware_destructive_interference_size`) removes the ping-pong. Best of all: accumulate in a local variable and write once at the end."
+  },
+  {
+   "prompt": "Which statement about `std::atomic<int> n{0};` is TRUE?",
+   "options": [
+    "`n = n + 1;` from two threads never loses updates",
+    "Atomics make the surrounding non-atomic data thread-safe automatically",
+    "`n++` and `n.fetch_add(1)` are atomic read-modify-writes, so no updates are lost",
+    "`volatile int` gives the same guarantees"
+   ],
+   "answer": 2,
+   "explanation": "`n++` and `fetch_add` are single atomic RMW operations. `n = n + 1` is an atomic *load* followed by a separate atomic *store*, which is two operations, so updates can be lost. Atomics only order other memory accesses through their memory order (seq_cst by default). `volatile` has nothing to do with inter-thread synchronization in C++."
+  }
+ ]
+}

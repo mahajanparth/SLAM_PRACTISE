@@ -1,0 +1,6 @@
+{"title": "Euclidean Clustering with Union-Find", "track": "slam", "module": "S5", "order": 5,
+ "type": "code", "difficulty": "Medium", "target_min": 15, "tags": ["union-find", "clustering", "voxel-hash", "unordered_map"],
+ "hints": ["Union-find: `parent[i] = i`, `find` with path compression (`parent[x] = find(parent[x])`), `unite` by rank or size. `unite` returns false if already in the same set.",
+           "Neighbours without O(N²): hash every point into a voxel of side r (key = floor(p / r)). Two points within r are always in the same or an adjacent voxel, so check the 27 cells.",
+           "Only compare each pair once (e.g. j > i) and use `squaredNorm() <= r*r`.",
+           "Final labelling: walk i = 0..N-1, map each root to the next id the first time you see it, skipping roots whose set size is outside [min_size, max_size] (label -1)."]}

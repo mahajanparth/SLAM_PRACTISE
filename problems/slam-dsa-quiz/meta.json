@@ -1,0 +1,3 @@
+{"title": "Object Lifetime Quiz: dangling refs, views, invalidation", "track": "slam", "module": "DSA", "order": 1,
+ "type": "quiz", "difficulty": "Easy", "target_min": 5, "tags": ["lifetime", "string_view", "iterator invalidation", "virtual destructor", "vector<bool>"],
+ "hints": ["Ask of every reference/view/iterator: who owns the bytes, and when do they die?", "`delete base_ptr` calls only the static type's destructor unless it is virtual."]}

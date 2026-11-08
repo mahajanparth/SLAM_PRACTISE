@@ -1,0 +1,92 @@
+{
+ "questions": [
+  {
+   "prompt": "Which call fails to compile?\n```cpp\ntemplate <typename T>\nT maxOf(T a, T b) { return a > b ? a : b; }\n\nmaxOf(3, 7);          // (A)\nmaxOf(2.5, 1);        // (B)\nmaxOf<double>(2.5, 1);// (C)\nmaxOf('a', 'b');      // (D)\n```",
+   "options": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "answer": 1,
+   "explanation": "In (B), the first argument deduces `T = double` and the second deduces `T = int`, so deduction conflicts. Template argument deduction does **not** apply implicit conversions. (C) fixes this by naming `T` explicitly, after which `1` converts to `double` normally."
+  },
+  {
+   "prompt": "Output?\n```cpp\ntemplate <typename T> void f(T x)  { x = 42; }\ntemplate <typename T> void g(T& x) { x = 42; }\n\nint a = 1, b = 1;\nf(a); g(b);\nstd::cout << a << \" \" << b;\n```",
+   "options": [
+    "1 1",
+    "42 42",
+    "1 42",
+    "42 1"
+   ],
+   "answer": 2,
+   "explanation": "`f(T x)` deduces `T = int` and takes a **copy**. `g(T& x)` deduces `T = int` and binds a reference. Passing a `const int` to `g` would deduce `T = const int`, and the assignment would then fail to compile."
+  },
+  {
+   "prompt": "You define a class template's member functions in `ring_buffer.cpp` and use `RingBuffer<Imu, 64>` from `main.cpp`, which includes only `ring_buffer.h` (declarations). What happens?",
+   "options": [
+    "Linker error: undefined reference to `RingBuffer<Imu,64>::push`",
+    "Works fine",
+    "Compile error in main.cpp",
+    "Runtime crash"
+   ],
+   "answer": 0,
+   "explanation": "`main.cpp` compiles because the declarations are visible, so it emits calls to `RingBuffer<Imu,64>::push`. But `ring_buffer.cpp` never instantiated that specialization, so no translation unit defines it and linking fails. Put template definitions in the header, or add `template class RingBuffer<Imu, 64>;` (explicit instantiation) in the .cpp."
+  },
+  {
+   "prompt": "Output?\n```cpp\ntemplate <typename T> const char* kind(T)  { return \"generic \"; }\ntemplate <>           const char* kind(int*) { return \"int-ptr \"; }\ntemplate <typename T> const char* kind(T*) { return \"pointer \"; }\n\nint x = 0;\nstd::cout << kind(&x) << kind(3.0);\n```",
+   "options": [
+    "int-ptr generic",
+    "generic generic",
+    "Ambiguous: compile error",
+    "pointer generic"
+   ],
+   "answer": 3,
+   "explanation": "Overload resolution only looks at the two **primary** templates, `kind(T)` and `kind(T*)`, and `kind(T*)` is more specialized for `int*`, so it wins. The `template<>` was declared *before* `kind(T*)` existed, so it specializes `kind(T)` with `T = int*`, and that primary was not selected. This is the classic Dimov/Abrahams example: prefer overloading to specializing function templates."
+  },
+  {
+   "prompt": "What is `v.size()` and does the last line compile?\n```cpp\nstd::vector<bool> v(3, true);\nauto& b = v[0];\n```",
+   "options": [
+    "3, compiles",
+    "3, does not compile: `v[0]` returns a proxy temporary that can't bind to `auto&`",
+    "24 bytes are used and it compiles",
+    "Undefined behaviour"
+   ],
+   "answer": 1,
+   "explanation": "`std::vector<bool>` is a library **specialization** that packs bits. `operator[]` returns `std::vector<bool>::reference`, a proxy object returned by value, and a non-const lvalue reference can't bind to it. `auto b = v[0]` compiles, but then `b` is a proxy that writes through to `v`. When you need real `bool&`, use `std::vector<char>` or `std::deque<bool>`."
+  },
+  {
+   "prompt": "Which calls compile?\n```cpp\ntemplate <typename T,\n          typename = std::enable_if_t<std::is_floating_point_v<T>>>\nT wrapPi(T a) { /* ... */ return a; }\n\nwrapPi(3.5);    // (1)\nwrapPi(3.5f);   // (2)\nwrapPi(3);      // (3)\n```",
+   "options": [
+    "Only (1)",
+    "All three",
+    "(1) and (2)",
+    "None, enable_if needs a return type"
+   ],
+   "answer": 2,
+   "explanation": "For `int`, `enable_if_t<false>` has no `type` member. The substitution fails, and **SFINAE** quietly removes the template from overload resolution, leaving no viable function, so (3) is an error. `double` and `float` are both floating point. A `static_assert` inside the body would give a clearer error message, but it can't take part in overload selection."
+  },
+  {
+   "prompt": "Inside `template <typename C> void dump(const C& c)`, which declaration is correct for an iterator?",
+   "options": [
+    "`typename C::const_iterator it = c.begin();`",
+    "`C::const_iterator it = c.begin();`",
+    "`template C::const_iterator it = c.begin();`",
+    "`class C::const_iterator it = c.begin();`"
+   ],
+   "answer": 0,
+   "explanation": "`C::const_iterator` is a **dependent name**. Until `C` is known, the parser assumes it is a value, not a type, so you must write `typename`. (In practice you'd just write `auto it = c.begin();`.) The related rule: write `obj.template get<0>()` when calling a member template on a dependent object."
+  },
+  {
+   "prompt": "`template <typename T, std::size_t N> struct Vec { std::array<T, N> d; };`  How many distinct class types do `Vec<double,3>`, `Vec<double,4>` and `Vec<float,3>` produce, and where is `d` stored for a local `Vec<double,3> v;`?",
+   "options": [
+    "1 type; heap",
+    "3 types; heap",
+    "2 types; stack",
+    "3 types; on the stack, inside `v` (24 bytes)"
+   ],
+   "answer": 3,
+   "explanation": "Every distinct argument list instantiates a separate class: 3 unrelated types, each with its own code, which is why templates cause code bloat. `std::array` stores its elements inline, so `sizeof(Vec<double,3>) == 24` and the data lives on the stack with no allocation. This is how Eigen's fixed-size `Vector3d` works."
+  }
+ ]
+}
