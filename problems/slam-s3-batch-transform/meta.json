@@ -1,0 +1,5 @@
+{"title": "Batch Transform a Point Cloud", "track": "slam", "module": "S3", "order": 3,
+ "type": "code", "difficulty": "Easy", "target_min": 8, "tags": ["eigen", "point-cloud", "performance", "eigen-map"],
+ "hints": ["Matrix3Xd: one matrix product plus a broadcast add, `(T.linear() * P).colwise() + T.translation()`. No loop needed.",
+           "std::vector: `out.reserve(pts.size())`, or construct with the right size, then a single loop. Hoist R and t out of the loop.",
+           "Raw buffer: `Eigen::Map<const Eigen::Matrix<float, 3, Eigen::Dynamic>, 0, Eigen::OuterStride<4>> P(xyzi, 3, n);` views x,y,z of each 4-float record without copying. Cast R and t to float."]}

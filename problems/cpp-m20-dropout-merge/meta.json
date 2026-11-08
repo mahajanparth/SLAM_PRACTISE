@@ -1,0 +1,6 @@
+{"title": "Sensor Dropouts: merge, uptime, intersect", "track": "cpp", "module": "M20", "order": 2,
+ "type": "code", "difficulty": "Medium", "target_min": 30, "tags": ["intervals", "sort", "binary search", "two pointers"],
+ "hints": ["merge: sort by start, then sweep. If `next.start - cur.end <= max_gap`, extend `cur.end = max(cur.end, next.end)`, else push cur and start a new one.",
+           "isDown: `upper_bound` on start with a comparator `(double t, const Interval& iv) { return t < iv.start; }`, then step back one and check `t < end`.",
+           "uptime: (t1 - t0) minus the total overlap of each merged interval with [t0, t1): `max(0, min(end, t1) - max(start, t0))`.",
+           "bothDown: two pointers i, j. The overlap is [max(starts), min(ends)); keep it if non-empty, then advance whichever interval ends first."]}

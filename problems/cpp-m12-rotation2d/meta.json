@@ -1,0 +1,6 @@
+{"title": "Rotation2D: a class that keeps its invariant", "track": "cpp", "module": "M12", "order": 2,
+ "type": "code", "difficulty": "Easy", "target_min": 20, "tags": ["classes", "invariants", "const-correctness", "static-factory", "explicit"],
+ "hints": ["Store (c, s) with c² + s² = 1. Every constructor and factory must establish that; nothing else can break it, because the members are private.",
+           "fromCosSin: `const double n = std::hypot(c, s); if (n < 1e-12) return Rotation2D(); ...` and divide by n.",
+           "Composition: (c1 + i s1)(c2 + i s2) = (c1c2 − s1s2) + i(s1c2 + c1s2). The inverse is (c, −s).",
+           "angle(): std::atan2(s, c) lies in [−π, π]. Map −π to +π to get (−π, π]."]}

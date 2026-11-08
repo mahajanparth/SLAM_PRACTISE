@@ -1,0 +1,3 @@
+{"title": "Predict the Output: Constructors, Initializer Lists, Invariants, const", "track": "cpp", "module": "M12", "order": 1,
+ "type": "quiz", "difficulty": "Easy", "target_min": 7, "tags": ["classes", "constructors", "initializer-lists", "const", "static", "explicit"],
+ "hints": ["Members are initialised in DECLARATION order, not in the order of the initializer list.", "A const object can only call const member functions."]}

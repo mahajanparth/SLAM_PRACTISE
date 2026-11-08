@@ -1,0 +1,6 @@
+{"title": "Transform a Plane (and a Line) Between Frames", "track": "slam", "module": "S3", "order": 6,
+ "type": "code", "difficulty": "Medium", "target_min": 8, "tags": ["se3", "planes", "homogeneous", "landmarks"],
+ "hints": ["A point x_A on the plane satisfies n_Aᵀ x_A + d_A = 0. Substitute x_A = Rᵀ(x_B − t) and read off the plane in B.",
+           "n_B = R n_A (a normal is a direction, so translation doesn't affect it). Then d_B = d_A − n_Bᵀ t.",
+           "Compactly: π_B = T_BA⁻ᵀ π_A, with π = (n, d) as a homogeneous 4-vector.",
+           "Line (point p, direction u): p' = T p (a point), u' = R u (a direction)."]}

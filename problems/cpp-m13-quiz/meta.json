@@ -1,0 +1,3 @@
+{"title": "Predict the Output: Construction Order, Access, Name Hiding", "track": "cpp", "module": "M13", "order": 1,
+ "type": "quiz", "difficulty": "Easy", "target_min": 8, "tags": ["inheritance", "construction-order", "access-specifiers", "name-hiding", "virtual-inheritance"],
+ "hints": ["Construction: virtual bases, then direct bases (in declaration order), then members (in declaration order), then the constructor body. Destruction is the exact reverse.", "A function in the derived class HIDES every base function with the same name, whatever the signature."]}

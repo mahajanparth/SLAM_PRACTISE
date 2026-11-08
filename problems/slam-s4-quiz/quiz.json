@@ -1,0 +1,81 @@
+{
+ "questions": [
+  {
+   "prompt": "Why do lidar odometry pipelines voxel-downsample a scan before ICP?",
+   "options": [
+    "ICP only works on integer coordinates",
+    "To make the density uniform (near-range points would otherwise dominate the cost), cut the point count, and speed up nearest-neighbour search",
+    "To remove the ground",
+    "Because voxelization removes all noise"
+   ],
+   "answer": 1,
+   "explanation": "Lidar density falls with range², so without downsampling, thousands of ground points next to the vehicle outweigh the far structure that constrains the pose. A 0.2–0.5 m leaf cuts 100k points to a few thousand, and ICP cost scales with the point count times the NN query cost."
+  },
+  {
+   "prompt": "Memory for 1,000,000 points stored as `std::vector<Eigen::Vector3d>` vs `std::vector<Eigen::Vector3f>`?",
+   "options": [
+    "24 MB vs 12 MB",
+    "32 MB vs 16 MB (both padded to 4 components)",
+    "12 MB vs 6 MB",
+    "Same, Eigen stores floats as doubles"
+   ],
+   "answer": 0,
+   "explanation": "`Vector3d` = 3×8 = 24 B, `Vector3f` = 12 B, with no padding. `Vector4f` (16 B) is often used deliberately so that each point is one 128-bit SSE register (PCL's `PointXYZ` has a padding float for this reason). Floats also halve memory bandwidth, which usually dominates cloud processing."
+  },
+  {
+   "prompt": "Voxel index computed as `int ix = int(p.x() / leaf);` with `leaf = 0.1`. What happens with x = −0.05 and x = +0.05?",
+   "options": [
+    "Different voxels (−1 and 0)",
+    "Compile error",
+    "Undefined behaviour",
+    "The same voxel 0: the cast truncates toward zero, so voxel 0 is twice as wide"
+   ],
+   "answer": 3,
+   "explanation": "`int(-0.5)` is 0, so the voxel around the origin spans (−0.1, 0.1). Use `std::floor` (→ −1 and 0). Also cast to a wide integer type (`int64_t`), since `x/leaf` can overflow `int` for small leaves with UTM-scale coordinates."
+  },
+  {
+   "prompt": "What is an **organized** point cloud?",
+   "options": [
+    "A cloud sorted by x coordinate",
+    "A cloud stored in a KD-tree",
+    "A cloud with a 2D grid structure (H×W) matching the sensor's scan pattern, like a depth image or lidar range image, so neighbours are adjacent pixels",
+    "A cloud with no NaNs"
+   ],
+   "answer": 2,
+   "explanation": "Organized clouds keep the sensor's row/column structure (invalid returns stay as NaN placeholders), so neighbour lookup is O(1) and you can run image operations (gradients, segmentation). Unorganized clouds (after voxelization or merging scans) need a KD-tree or voxel hash for neighbour search."
+  },
+  {
+   "prompt": "For normal estimation you run `Eigen::SelfAdjointEigenSolver<Matrix3d> es(C)` on a neighbourhood covariance. Which column is the normal?",
+   "options": [
+    "`es.eigenvectors().col(2)`, the largest eigenvalue",
+    "`es.eigenvectors().col(0)`: eigenvalues are sorted ascending, and the normal is the direction of least variance",
+    "`es.eigenvectors().row(0)`",
+    "Any column, they are all normals"
+   ],
+   "answer": 1,
+   "explanation": "On a plane the points spread in two directions (large λ1, λ2) and barely along the normal (λ0 ≈ 0). The eigenvector's sign is arbitrary, so orient it toward the sensor. If λ1 ≈ 0 too, the neighbourhood is a line and the normal is undefined."
+  },
+  {
+   "prompt": "Why compare **squared** distances in nearest-neighbour code?",
+   "options": [
+    "sqrt is monotonic, so the ordering is identical; skipping it saves ~15–20 cycles per candidate",
+    "Squared distances are more accurate",
+    "To avoid negative distances",
+    "Because Eigen's norm() is buggy"
+   ],
+   "answer": 0,
+   "explanation": "`(p - q).squaredNorm()` gives the same nearest neighbour as `norm()`. Only take the sqrt for the k results you return (or never, if callers use radius² thresholds)."
+  },
+  {
+   "prompt": "A brute-force kNN over N points for one query. Which approach has the best complexity for small k?",
+   "options": [
+    "Sort all N distances: O(N log N)",
+    "Recursion: O(log N)",
+    "Insert all into a std::set: O(N²)",
+    "Keep a max-heap of size k (or use `partial_sort`/`nth_element`): O(N log k) or O(N + k log k)"
+   ],
+   "answer": 3,
+   "explanation": "With k = 10 and N = 100k, a size-k max-heap does ~N·log2(10) comparisons instead of N·log2(N). `std::nth_element` partitions in O(N) on average, and then you sort only the first k. A KD-tree (S5) makes each query ~O(log N) after an O(N log N) build. Brute force still wins for tiny N or on GPUs."
+  }
+ ]
+}

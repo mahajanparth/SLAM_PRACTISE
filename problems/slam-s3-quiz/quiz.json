@@ -1,0 +1,81 @@
+{
+ "questions": [
+  {
+   "prompt": "How many degrees of freedom does a rigid transform in 3D have, and how many numbers does the common *quaternion + translation* parameterization store?",
+   "options": [
+    "6 DOF; 6 numbers",
+    "6 DOF; 7 numbers",
+    "12 DOF; 16 numbers",
+    "7 DOF; 7 numbers"
+   ],
+   "answer": 1,
+   "explanation": "3 rotation + 3 translation = 6 DOF. Storage: 16 (4×4), 12 ([R|t]), 7 (quaternion + t, with one unit-norm constraint) or 6 (minimal: rotation vector + t, or the se(3) twist). Optimizers store 7 and update with 6-dimensional increments."
+  },
+  {
+   "prompt": "You have `T_w_r` (robot in world) and `T_r_l` (lidar extrinsic). Which expression gives the lidar pose in world?",
+   "options": [
+    "`T_w_r * T_r_l`",
+    "`T_r_l * T_w_r`",
+    "`T_w_r.inverse() * T_r_l`",
+    "`T_r_l.inverse() * T_w_r`"
+   ],
+   "answer": 0,
+   "explanation": "Subscripts cancel when adjacent indices match: $T_{wr}T_{r\\ell}=T_{w\\ell}$. The wrong order `T_r_l * T_w_r` compiles and even looks plausible when the extrinsic is near identity, which is why interviewers love it. Name variables with both frames so mismatches are visible."
+  },
+  {
+   "prompt": "Why can't you average two poses by averaging their 4×4 matrices `0.5*(T1.matrix() + T2.matrix())`?",
+   "options": [
+    "Because Eigen doesn't allow adding Isometry3d",
+    "Only the translation is wrong",
+    "It's correct, just slow",
+    "The top-left block becomes $\\tfrac12(R_1+R_2)$, which is not a rotation in general (for $R_2=R_x(180°)R_1$ it is even singular)"
+   ],
+   "answer": 3,
+   "explanation": "SO(3) is not a vector space. The midpoint of two rotations has to be computed on the manifold: slerp, or $R_1\\exp(\\tfrac12\\log(R_1^TR_2))$. The translation can be averaged linearly (or use the SE(3) exponential for screw-motion interpolation)."
+  },
+  {
+   "prompt": "In homogeneous coordinates, what does a 4-vector with $w=0$ represent, e.g. $(n_x,n_y,n_z,0)$?",
+   "options": [
+    "The origin",
+    "An invalid point",
+    "A direction (point at infinity): $T\\,[\\mathbf v;0] = [R\\mathbf v;0]$, so translation has no effect",
+    "A plane"
+   ],
+   "answer": 2,
+   "explanation": "The 4th column of $T$ (the translation) is multiplied by $w$. Directions such as velocities, normals of a rigid motion, and ray directions use $w=0$. That's why you transform normals with `T.linear() * n`, not `T * n`."
+  },
+  {
+   "prompt": "What is the cheapest correct inverse of $T=[R\\,|\\,\\mathbf t]$?",
+   "options": [
+    "`T.matrix().inverse()`",
+    "$[R^T\\,|\\,-R^T\\mathbf t]$",
+    "$[R^T\\,|\\,-\\mathbf t]$",
+    "$[-R\\,|\\,-\\mathbf t]$"
+   ],
+   "answer": 1,
+   "explanation": "From $p_a=Rp_b+t \\Rightarrow p_b=R^T(p_a-t)$. A general 4×4 inverse is ~5x the flops and introduces round-off. `Eigen::Isometry3d::inverse()` uses the transpose; `Affine3d::inverse()` does a general 3×3 inverse because it allows scale and shear. $[R^T|-t]$ is a classic bug."
+  },
+  {
+   "prompt": "Robot poses `T_w_a`, `T_w_b` at two timestamps. Which is the odometry measurement (motion of b relative to a, expressed in a)?",
+   "options": [
+    "`T_w_a.inverse() * T_w_b`",
+    "`T_w_b * T_w_a.inverse()`",
+    "`T_w_b.inverse() * T_w_a`",
+    "`T_w_a * T_w_b`"
+   ],
+   "answer": 0,
+   "explanation": "$T_{ab}=T_{aw}T_{wb}=T_{wa}^{-1}T_{wb}$. Option A is the motion expressed in the **world** frame. It differs whenever the robot isn't at the origin, and it's the classic swapped-order bug in pose-graph code. The prediction is $T_{wb}=T_{wa}T_{ab}$."
+  },
+  {
+   "prompt": "`Eigen::Isometry3d T; T.translation() = t;` (the author forgot to set the rotation). What is `T.linear()`?",
+   "options": [
+    "The identity",
+    "Compile error",
+    "All zeros",
+    "Uninitialized garbage: the default constructor only sets the last row to `0 0 0 1` (Eigen 3.4) and leaves R and t uninitialized, so start from `Isometry3d::Identity()`"
+   ],
+   "answer": 3,
+   "explanation": "Like every Eigen fixed-size type, `Transform` doesn't initialize its coefficients by default. For Affine/Isometry mode, Eigen 3.4 only writes the homogeneous last row. Garbage R gives garbage points, often only in release builds where the stack happens to differ. Always use `Eigen::Isometry3d T = Eigen::Isometry3d::Identity();` (or `T.setIdentity()`)."
+  }
+ ]
+}

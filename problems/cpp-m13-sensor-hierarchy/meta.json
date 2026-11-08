@@ -1,0 +1,6 @@
+{"title": "Sensor Hierarchy: construction order, protected interface, name hiding", "track": "cpp", "module": "M13", "order": 2,
+ "type": "code", "difficulty": "Easy", "target_min": 20, "tags": ["inheritance", "construction-order", "protected", "name-hiding", "exceptions-in-ctors"],
+ "hints": ["Each class logs in its own constructor BODY and destructor body. The language orders everything else: base, then members, then body, and the reverse on destruction.",
+           "Derived constructors must initialise the base explicitly: `Lidar(...) : Sensor(std::move(name), rate_hz), rings_(rings)`.",
+           "Lidar::describe() hides Sensor::describe(). Call the base version explicitly: `Sensor::describe() + \" rings=\" + std::to_string(rings_)`.",
+           "Throw from the Lidar constructor BEFORE logging \"Lidar(...)\". The already-built base and members are then destroyed automatically, but ~Lidar() never runs."]}

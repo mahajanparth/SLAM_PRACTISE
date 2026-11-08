@@ -1,0 +1,5 @@
+{"title": "Spinning-Lidar Range Image Projection", "track": "slam", "module": "S4", "order": 6,
+ "type": "code", "difficulty": "Medium", "target_min": 12, "tags": ["range-image", "lidar", "spherical-projection", "atan2"],
+ "hints": ["range = |p|; azimuth = atan2(y, x) ∈ [−π, π]; elevation = atan2(z, hypot(x, y)). Work in radians: convert the FOV once.",
+           "col = floor((az + π) / 2π · cols), then clamp col == cols to cols − 1. row = floor((fov_up − el) / (fov_up − fov_down) · rows). Discard el outside [fov_down, fov_up]; clamp row == rows to rows − 1.",
+           "Pixel index = row · cols + col. Keep the point only if the pixel is empty (−1) or its range is smaller than the stored one."]}

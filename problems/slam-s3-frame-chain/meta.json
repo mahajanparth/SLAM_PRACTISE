@@ -1,0 +1,5 @@
+{"title": "Frame Chains and Relative Pose", "track": "slam", "module": "S3", "order": 4,
+ "type": "code", "difficulty": "Medium", "target_min": 10, "tags": ["se3", "frames", "extrinsics", "odometry"],
+ "hints": ["Write every transform as T_<to>_<from> and make adjacent subscripts cancel: T_c_l = T_c_w · T_w_r · T_r_l.",
+           "T_c_w is T_w_c.inverse(). `Eigen::Isometry3d::inverse()` is cheap (it uses the transpose).",
+           "Relative pose: T_a_b = T_a_w · T_w_b = T_w_a⁻¹ · T_w_b. Prediction: T_w_b = T_w_a · T_a_b."]}

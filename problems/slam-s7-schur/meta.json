@@ -1,0 +1,6 @@
+{"title": "Marginalization via the Schur Complement", "track": "slam", "module": "S7", "order": 6,
+ "type": "code", "difficulty": "Hard", "target_min": 10, "tags": ["schur-complement", "marginalization", "bundle-adjustment", "sliding-window"],
+ "hints": ["Split with blocks: A = H.topLeftCorner(na,na), B = H.topRightCorner(na,nc), C = H.bottomRightCorner(nc,nc); likewise b.head(na), b.tail(nc).",
+           "Eliminate Δc from the second block row: Δc = C⁻¹(b_c − Bᵀ Δa). Substitute it into the first row.",
+           "H' = A − B C⁻¹ Bᵀ, b' = b_a − B C⁻¹ b_c. Compute C⁻¹Bᵀ and C⁻¹b_c with one C.ldlt() and two solve() calls, not inverse().",
+           "solveViaSchur: Δa = H'.ldlt().solve(b'), then back-substitute Δc = C.ldlt().solve(b_c − Bᵀ Δa)."]}

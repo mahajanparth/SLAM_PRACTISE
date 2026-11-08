@@ -1,0 +1,6 @@
+{"title": "Bounded OccupancyGrid: invariants, checked access, factory", "track": "cpp", "module": "M12", "order": 3,
+ "type": "code", "difficulty": "Medium", "target_min": 30, "tags": ["classes", "invariants", "exceptions", "std::optional", "const-correctness"],
+ "hints": ["Constructor: validate FIRST, then size the storage with `cells_(std::size_t(w) * h, 0.0)`. Remember members are initialised in declaration order. create(): check the same conditions and return std::nullopt, or construct inside try/catch.",
+           "worldToCell: `int cx = (int)std::floor((x - ox_) / res_);`. Use floor, not a cast (casts truncate toward zero, which breaks for negative coordinates). Then check bounds.",
+           "Write ONE private `std::size_t idx(int cx, int cy) const` that throws std::out_of_range when !inBounds, and use it in logOdds/update/cellCenter.",
+           "update: `v = std::clamp(v + delta, kMinLogOdds, kMaxLogOdds);`. probability = 1 − 1/(1+e^l)."]}

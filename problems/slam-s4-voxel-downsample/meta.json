@@ -1,0 +1,6 @@
+{"title": "Voxel Grid Downsample", "track": "slam", "module": "S4", "order": 2,
+ "type": "code", "difficulty": "Medium", "target_min": 15, "tags": ["point-cloud", "voxel-grid", "hashing", "unordered_map"],
+ "hints": ["Voxel index = floor(p / leaf) per axis. Use std::floor, not an int cast: the cast truncates toward zero, so −0.01 and 0.01 would share a voxel.",
+           "Key = three int64 values. std::unordered_map needs a hash functor: e.g. (x·73856093) ^ (y·19349663) ^ (z·83492791), plus operator== on the key.",
+           "Accumulate (sum, count) per voxel in a single pass, then emit sum / count. Call reserve() on the map and the output.",
+           "Alternative (deterministic, cache friendly): compute keys, sort indices by key, then average runs of equal keys."]}

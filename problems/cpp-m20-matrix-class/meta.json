@@ -1,0 +1,6 @@
+{"title": "Matrix Class: Rule of Five, move semantics, operators", "track": "cpp", "module": "M20", "order": 4,
+ "type": "code", "difficulty": "Hard", "target_min": 40, "tags": ["rule of five", "move semantics", "noexcept", "operator overloading", "copy-and-swap"],
+ "hints": ["Copy ctor: allocate `new double[rows*cols]` (or nullptr when empty) and `std::copy` the elements. Move ctor: steal the pointer and dims, then set the source to `{0, 0, nullptr}`.",
+           "Assignment: one `operator=(Matrix other) noexcept` taking BY VALUE plus `swap` covers both copy and move assignment (copy-and-swap) and is self-assignment safe. Or write both, checking `this != &other`.",
+           "`operator+(Matrix a, const Matrix& b) { a += b; return a; }` reuses +=, and an rvalue `a` is moved in for free. Check dimensions first and throw std::invalid_argument.",
+           "Multiply with i-k-j loop order: `for i, for k { double aik = A(i,k); for j: C(i,j) += aik * B(k,j); }` streams contiguous rows of B (cache friendly)."]}

@@ -1,0 +1,5 @@
+{"title": "Brute-Force k Nearest Neighbours", "track": "slam", "module": "S4", "order": 3,
+ "type": "code", "difficulty": "Easy", "target_min": 8, "tags": ["knn", "partial_sort", "heap", "point-cloud"],
+ "hints": ["Compute SQUARED distances once into a vector of (d², index) pairs. Pairs compare lexicographically, which gives you the tie-break on index for free.",
+           "k_eff = min(k, N). std::partial_sort(v.begin(), v.begin() + k_eff, v.end()) is O(N log k).",
+           "Or keep a std::priority_queue (max-heap) of size k: push, and pop when the size exceeds k. Remember to reverse at the end."]}

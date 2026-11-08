@@ -36,7 +36,7 @@ inline void report(bool ok, const char* expr, const char* file, int line) {
 // Works for any Eigen dense expressions of equal size.
 #define CHECK_MAT_NEAR(A, B, tol)                                                   \
   do {                                                                              \
-    const auto& _A = (A); const auto& _B = (B);                                     \
+    const auto _A = (A).eval(); const auto _B = (B).eval();  /* copy: no dangling */ \
     bool _ok = _A.rows() == _B.rows() && _A.cols() == _B.cols() &&                  \
                ((_A - _B).cwiseAbs().maxCoeff() <= (tol));                          \
     check_detail::report(_ok, #A " ~= " #B, __FILE__, __LINE__);                    \

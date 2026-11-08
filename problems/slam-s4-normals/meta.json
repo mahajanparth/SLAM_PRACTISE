@@ -1,0 +1,6 @@
+{"title": "Surface Normals via PCA (+ orientation)", "track": "slam", "module": "S4", "order": 4,
+ "type": "code", "difficulty": "Medium", "target_min": 15, "tags": ["normals", "pca", "covariance", "eigen-solver"],
+ "hints": ["For each point: neighbours = knn(pts, p, k) (the point itself is included). Compute the centroid, then C = Σ (pᵢ − c)(pᵢ − c)ᵀ / k.",
+           "Eigen::SelfAdjointEigenSolver<Matrix3d> sorts eigenvalues ASCENDING, so the normal is eigenvectors().col(0) and curvature = λ0 / (λ0 + λ1 + λ2).",
+           "Orientation: if n·(viewpoint − p) < 0, flip n.",
+           "Degenerate cases: fewer than 3 neighbours, or λ1 ≤ 1e-10·λ2 (collinear) or λ2 == 0 (all identical) → valid = false. Subtract the centroid BEFORE accumulating, so you don't get catastrophic cancellation far from the origin."]}

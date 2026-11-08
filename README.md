@@ -16,6 +16,8 @@ python3 app/server.py --port 8008
 
 ## What's inside
 
+**118 problems** (88 coding + 30 quizzes) and **29 revision notes**: 60 problems in the C++17 track and 58 in the SLAM track. All are machine-verified.
+
 | | |
 |---|---|
 | **C++17 Revision track** | 20 modules in 7 sittings: fundamentals → functions → vectors → containers → maps/sets → algorithms → lambdas → `std::function` → memory → smart pointers → Rule of 0/3/5 → OOP → inheritance → polymorphism → templates → C++17 features → advanced STL → multithreading → interview practice |

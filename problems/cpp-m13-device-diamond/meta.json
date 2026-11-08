@@ -1,0 +1,6 @@
+{"title": "Device Diamond: virtual inheritance & construction order", "track": "cpp", "module": "M13", "order": 3,
+ "type": "code", "difficulty": "Medium", "target_min": 30, "tags": ["multiple-inheritance", "virtual-inheritance", "diamond", "construction-order", "protected"],
+ "hints": ["The starter's `class Powered : public Device` gives SmartLidar TWO Device subobjects. Inherit `virtual public Device` in BOTH Powered and Networked.",
+           "With a virtual base, the MOST-DERIVED class constructs it: SmartLidar's initializer list must call `Device(id)`. The `Device(id)` calls in Powered/Networked are skipped when they're bases of SmartLidar (but still used when you construct a standalone Powered).",
+           "Construction order: virtual bases first, then non-virtual direct bases in declaration order (Powered, Networked), then members, then the body. Destruction is the exact reverse.",
+           "deviceId()/totalBoots() can just call id()/bootCount(). With one shared Device they're no longer ambiguous."]}

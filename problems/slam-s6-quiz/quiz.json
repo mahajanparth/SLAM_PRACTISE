@@ -1,0 +1,92 @@
+{
+ "questions": [
+  {
+   "prompt": "Why does ICP need a good initial guess?",
+   "options": [
+    "Because SVD is numerically unstable for large rotations",
+    "The cost is non-convex: nearest-neighbour correspondences are only right when the clouds are already close, so ICP converges to the *local* minimum of whatever basin it starts in",
+    "Because the Kabsch solution is only valid for small angles",
+    "It doesn't; ICP is globally optimal with enough iterations"
+   ],
+   "answer": 1,
+   "explanation": "Each iteration is optimal *given* the correspondences (Kabsch is exact for any rotation), but the correspondences come from a greedy nearest-neighbour guess. Far from the truth, most pairs are wrong and the iteration settles in a wrong basin (typically within ~20–30° / a fraction of the scene scale). Remedies: a motion prior (IMU, constant velocity, wheel odometry), global registration first (FPFH + RANSAC, TEASER++), coarse-to-fine voxel pyramids, or Go-ICP (branch & bound) when you really need global optimality."
+  },
+  {
+   "prompt": "Spot the bug (Kabsch, $H=\\sum \\tilde p\\tilde q^\\top$):\n```cpp\nEigen::JacobiSVD<Eigen::Matrix3d> svd(H, Eigen::ComputeFullU | Eigen::ComputeFullV);\nEigen::Matrix3d R = svd.matrixV() * svd.matrixU().transpose();\nEigen::Vector3d t = q_mean - p_mean;\n```",
+   "options": [
+    "Only the translation is wrong",
+    "Only the missing reflection check is wrong",
+    "Both: t must be `q_mean - R * p_mean`, and R may have det = -1 without the diag(1,1,det(VUᵀ)) correction",
+    "Nothing; it should be `U * V^T` though"
+   ],
+   "answer": 2,
+   "explanation": "Two classic bugs. (1) With centred data the optimal translation is $t = \\bar q - R\\bar p$. `q̄ − p̄` is only right when R = I. (2) $VU^\\top$ is the best *orthogonal* matrix, which can be a reflection (det −1) for planar or very noisy data. Fix: $R = V\\,\\mathrm{diag}(1,1,\\det(VU^\\top))\\,U^\\top$. With $H = \\sum \\tilde p\\tilde q^\\top$ the order is $VU^\\top$. If you define $H=\\sum \\tilde q \\tilde p^\\top$ it becomes $UV^\\top$, so know your convention."
+  },
+  {
+   "prompt": "Point-to-plane ICP with $R\\approx I+[\\omega]_\\times$, $t=v$, $\\delta=(\\omega,v)$. What is the $1\\times 6$ Jacobian of $r_i = n_i\\cdot(Rp_i + t - q_i)$ at $\\delta = 0$?",
+   "options": [
+    "$[\\,n_i^\\top,\\; (p_i\\times n_i)^\\top\\,]$",
+    "$[\\,(n_i\\times p_i)^\\top,\\; n_i^\\top\\,]$",
+    "$[\\,(p_i - q_i)^\\top,\\; n_i^\\top\\,]$",
+    "$[\\,(p_i\\times n_i)^\\top,\\; n_i^\\top\\,]$"
+   ],
+   "answer": 3,
+   "explanation": "$n\\cdot(\\omega\\times p) = \\omega\\cdot(p\\times n)$ (scalar triple product), so $\\partial r/\\partial\\omega = (p\\times n)^\\top$ and $\\partial r/\\partial v = n^\\top$. Note the order: $n\\times p$ flips the sign and is a classic bug. Then $H=\\sum J^\\top J$, $b=\\sum J^\\top r$, $\\delta=-H^{-1}b$, and update $T \\leftarrow \\mathrm{Exp}(\\delta)\\,T$."
+  },
+  {
+   "prompt": "A robot drives down a long featureless corridor. Your point-to-plane ICP returns a pose that drifts along the corridor axis. How do you *detect* this in the solver?",
+   "options": [
+    "The smallest eigenvalue of $H = J^\\top J$ is tiny relative to the largest; its eigenvector points along the corridor (translation)",
+    "The final RMSE is large",
+    "The number of correspondences drops",
+    "det(R) becomes negative"
+   ],
+   "answer": 0,
+   "explanation": "The walls and floor constrain only the directions their normals span; translation along the corridor changes no residual, so $H$ is (near-)singular in that direction. RMSE can be *small* because everything fits. Detect it via the eigenvalues of $H$ (or its condition number), then don't update along that eigenvector (LOAM's 'solution remapping'), fuse wheel odometry or IMU there, or flag the result as degenerate."
+  },
+  {
+   "prompt": "Point-to-point vs point-to-plane vs GICP / NDT. Which statement is right?",
+   "options": [
+    "Point-to-point converges fastest on structured indoor scenes",
+    "GICP needs no covariance estimation",
+    "Point-to-plane lets points slide along surfaces, which removes the zig-zag of point-to-point and typically converges in far fewer iterations, but needs target normals",
+    "NDT requires point-to-point correspondences"
+   ],
+   "answer": 2,
+   "explanation": "Point-to-point penalises in-plane offsets that are just sampling differences, so it converges slowly (linearly) on planar scenes. Point-to-plane only penalises distance along the normal, so it converges in a few iterations with near-quadratic behaviour when close. GICP models both clouds as local Gaussians (plane-to-plane, needs per-point covariances). NDT matches points to per-voxel Gaussians of the target, so no explicit NN correspondences are needed."
+  },
+  {
+   "prompt": "Scan-to-map odometry with a constant-velocity prior. Poses are world-from-body. Given the previous two poses $T_{k-2}, T_{k-1}$, the prediction for $T_k$ is:",
+   "options": [
+    "$T_{k-1}\\,T_{k-2}^{-1}\\,T_{k-1}$",
+    "$T_{k-1}\\,(T_{k-2}^{-1}\\,T_{k-1})$",
+    "$2T_{k-1} - T_{k-2}$",
+    "$T_{k-2}^{-1}\\,T_{k-1}$"
+   ],
+   "answer": 1,
+   "explanation": "The last body-frame motion is $\\Delta = T_{k-2}^{-1}T_{k-1}$; replay it on the right: $T_k \\approx T_{k-1}\\Delta$. Option A applies the motion in the world frame, which is wrong when the robot has turned. Option C isn't even in SE(3). Option D is the relative motion itself, not a pose. KISS-ICP uses exactly this prior, and it's also the basis for constant-velocity deskewing."
+  },
+  {
+   "prompt": "Why do most lidar odometry systems register each scan to a **local map** rather than to the previous scan?",
+   "options": [
+    "The previous scan is too dense",
+    "Scan-to-scan needs an IMU",
+    "A local map makes ICP globally optimal",
+    "The map is denser and more complete, so correspondences are better and errors don't compound scan-to-scan; drift grows much more slowly"
+   ],
+   "answer": 3,
+   "explanation": "Scan-to-scan suffers from sparse, partially overlapping lidar rings and accumulates every pairwise error. A local map (voxel hash in KISS-ICP, ikd-tree in FAST-LIO2, edge/plane maps in LOAM) aggregates many keyframes, which averages noise and gives full overlap. Keep it bounded: insert only at keyframes (distance/angle thresholds), cap points per voxel, and drop voxels beyond max range."
+  },
+  {
+   "prompt": "Your ICP must run at 10 Hz on a 128-beam lidar (~250k points/scan) on one CPU core. What's the most effective first step?",
+   "options": [
+    "Voxel-downsample the scan (and keep the map voxelised) so ICP works on a few thousand points, then use a KD-tree or voxel-hash NN",
+    "Switch from JacobiSVD to BDCSVD",
+    "Increase the number of ICP iterations",
+    "Use `double` instead of `float`"
+   ],
+   "answer": 0,
+   "explanation": "The cost is dominated by (#points × #iterations × NN cost). Downsampling 250k → ~5–10k points (adaptive voxel size), plus O(1)/O(log N) NN, buys 1–2 orders of magnitude. The 3×3 SVD is negligible. Then add early termination on Δpose, a good initial guess (fewer iterations) and parallel correspondence search (OpenMP/TBB)."
+  }
+ ]
+}

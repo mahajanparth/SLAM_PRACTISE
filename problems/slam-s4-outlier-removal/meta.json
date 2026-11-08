@@ -1,0 +1,6 @@
+{"title": "Statistical Outlier Removal", "track": "slam", "module": "S4", "order": 5,
+ "type": "code", "difficulty": "Medium", "target_min": 12, "tags": ["point-cloud", "outliers", "knn", "statistics"],
+ "hints": ["First pass: for each point, the mean distance to its k nearest OTHER points. Use knn(pts, p, k + 1) and skip the point itself (careful with duplicates: skip by index, not by distance 0).",
+           "Second pass: μ and σ (population: divide by N) of those mean distances. Threshold = μ + α·σ.",
+           "Keep i if meanDist[i] ≤ threshold. Using ≤ (not <) is what makes σ = 0 (all identical points) keep everything.",
+           "Clamp: k_eff = min(k, N − 1). If N ≤ 1 or k_eff ≤ 0, return all indices."]}

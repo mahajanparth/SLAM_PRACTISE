@@ -1,0 +1,6 @@
+{"title": "LRU Cache for Map Tiles (byte budget)", "track": "cpp", "module": "M20", "order": 1,
+ "type": "code", "difficulty": "Medium", "target_min": 35, "tags": ["LRU", "std::list", "unordered_map", "custom hash", "splice"],
+ "hints": ["Classic O(1) LRU: `std::list<Entry>` ordered MRU→LRU plus `std::unordered_map<TileKey, std::list<Entry>::iterator, TileKeyHash>`.",
+           "get: find in map; on hit, `lru_.splice(lru_.begin(), lru_, it->second)` moves the node to the front without invalidating iterators or copying data.",
+           "put: if the key exists, update bytes_ and the data, then splice it to the front. Else push_front and insert into the map. Then evict from `std::prev(lru_.end())` while `bytes_ > budget_`.",
+           "Oversized tile (size > budget): erase any existing entry for that key and return without inserting. Erasing the map entry and the list node keeps both structures consistent."]}

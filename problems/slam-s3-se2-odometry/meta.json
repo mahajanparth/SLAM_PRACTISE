@@ -1,0 +1,6 @@
+{"title": "SE(2) Composition & Wheel-Odometry Integration", "track": "slam", "module": "S3", "order": 5,
+ "type": "code", "difficulty": "Easy", "target_min": 10, "tags": ["se2", "odometry", "angle-wrap", "kinematics"],
+ "hints": ["wrapAngle: std::atan2(std::sin(a), std::cos(a)), or std::remainder(a, 2π).",
+           "compose: rotate b's translation by a's heading, then add: x = xa + cos(θa)·xb − sin(θa)·yb, y = ya + sin(θa)·xb + cos(θa)·yb, θ = wrap(θa + θb).",
+           "Exact arc for constant (v, ω): Δx = (v/ω)(sin(θ+ωdt) − sinθ), Δy = −(v/ω)(cos(θ+ωdt) − cosθ).",
+           "For |ω| < ~1e-9, use the straight-line limit Δx = v·dt·cosθ, Δy = v·dt·sinθ. Otherwise v/ω blows up."]}

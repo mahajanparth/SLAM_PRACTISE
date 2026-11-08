@@ -1,0 +1,3 @@
+{"title": "Warm-up: Registration (ICP, Kabsch, design)", "track": "slam", "module": "S6", "order": 1,
+ "type": "quiz", "difficulty": "Medium", "target_min": 8, "tags": ["icp", "kabsch", "point-to-plane", "degeneracy", "lidar-odometry"],
+ "hints": ["ICP's correspondence step is a local, greedy guess. What does that imply about the basin of convergence?", "Degeneracy shows up in the eigenvalues of the Gauss-Newton normal matrix H = JᵀJ."]}

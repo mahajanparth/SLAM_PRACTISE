@@ -1,0 +1,5 @@
+{"title": "Simple Ground Removal (height threshold + grid min-z)", "track": "slam", "module": "S4", "order": 7,
+ "type": "code", "difficulty": "Easy", "target_min": 10, "tags": ["ground-segmentation", "point-cloud", "grid", "hashing"],
+ "hints": ["Height threshold: in the sensor frame the ground is at z ≈ −sensor_height. A point is ground iff z < −sensor_height + threshold.",
+           "Grid version, pass 1: cell = (floor(x/cell), floor(y/cell)), and keep the min z per cell in an unordered_map (or std::map) keyed by the pair.",
+           "Pass 2: a point is ground iff z − minZ[its cell] < threshold. Collect the non-ground indices in input order."]}

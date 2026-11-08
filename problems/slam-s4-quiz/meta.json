@@ -1,0 +1,19 @@
+{
+ "title": "Warmup: Point Cloud Fundamentals",
+ "track": "slam",
+ "module": "S4",
+ "order": 1,
+ "type": "quiz",
+ "difficulty": "Easy",
+ "target_min": 6,
+ "tags": [
+  "point-cloud",
+  "voxel",
+  "memory",
+  "pca"
+ ],
+ "hints": [
+  "Think about sizeof and alignment.",
+  "What does truncation toward zero do to negative coordinates?"
+ ]
+}

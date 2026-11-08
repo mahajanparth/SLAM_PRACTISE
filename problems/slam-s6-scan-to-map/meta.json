@@ -1,0 +1,6 @@
+{"title": "Scan-to-Map Odometry Skeleton", "track": "slam", "module": "S6", "order": 5,
+ "type": "code", "difficulty": "Hard", "target_min": 15, "tags": ["system-design", "lidar-odometry", "voxel-hash", "keyframes", "std::function"],
+ "hints": ["Constant velocity: the last relative motion is Δ = T₂⁻¹·T₁ (body frame), so the prediction is T₁·Δ.",
+           "VoxelHashMap: `std::unordered_map<Eigen::Vector3i, std::vector<Eigen::Vector3d>, Hash>` with a custom hash (XOR of coords × large primes) and key = floor(p / voxel_size).",
+           "removeFarFrom: iterate with `it = map.erase(it)` (erase returns the next iterator). Don't `++it` after erasing.",
+           "process(): first scan → identity pose, add to map, it's the first keyframe. Otherwise init = prediction from the last two poses (or the last pose if only one), T = register_(scan, map_, init), and update the map ONLY if isKeyframe(last_kf_, T)."]}

@@ -1,0 +1,6 @@
+{"title": "Pose at Lidar Timestamp: nearest lookup + SE(2) interpolation", "track": "cpp", "module": "M20", "order": 3,
+ "type": "code", "difficulty": "Medium", "target_min": 35, "tags": ["lower_bound", "optional", "angle wrap", "SE(2)", "interpolation"],
+ "hints": ["nearestIndex: `lower_bound` on t gives the first stamp >= t. Compare it with the element before it, and prefer the earlier one on ties.",
+           "poseAt: reject if empty or t is outside [front.t, back.t]. Find k with stamps[k-1] <= t <= stamps[k], alpha = (t - t0)/(t1 - t0). Lerp x and y; for theta use `wrap(th0 + alpha * wrap(th1 - th0))`.",
+           "relative(a, b) = a⁻¹ ∘ b: rotate the world-frame difference (b.x - a.x, b.y - a.y) by -a.theta, and the angle is wrap(b.theta - a.theta).",
+           "motionBetween: two poseAt calls; if either is nullopt return nullopt, else relative(*p0, *p1)."]}
