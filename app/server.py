@@ -7,6 +7,7 @@ Then open http://127.0.0.1:8008
 Stdlib only. Binds to 127.0.0.1 (the terminal endpoint runs shell commands — never expose it).
 """
 import argparse
+import glob
 import json
 import os
 import re
@@ -38,6 +39,9 @@ DEBUG_FLAGS = ["-O0", "-g", "-fsanitize=address,undefined", "-fno-omit-frame-poi
 ID_RE = re.compile(r"^[A-Za-z0-9_\-]+$")
 ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
 SUMMARY_RE = re.compile(r"(\d+) passed, (\d+) failed")
+
+CLAUDE_TIMEOUT = 300
+CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "")  # empty = your Claude Code default
 
 _lock = threading.Lock()
 _term_cwd = {"cwd": str(ROOT)}
@@ -204,6 +208,121 @@ def run_terminal(cmd):
     return {"output": out, "exit_code": rc, "cwd": cwd_disp}
 
 
+# ---------------------------------------------------------------- Ask Claude
+def find_claude():
+    """Locate the Claude Code CLI: $CLAUDE_BIN, PATH, then the VS Code extension's bundled binary."""
+    cands = [os.environ.get("CLAUDE_BIN"), shutil.which("claude"),
+             str(Path.home() / ".claude" / "local" / "claude"), str(Path.home() / ".local" / "bin" / "claude")]
+    for pattern in ("~/.vscode/extensions/anthropic.claude-code-*/resources/native-binary/claude",
+                    "~/.cursor/extensions/anthropic.claude-code-*/resources/native-binary/claude"):
+        cands += sorted(glob.glob(os.path.expanduser(pattern)), key=os.path.getmtime, reverse=True)
+    for c in cands:
+        if c and os.path.isfile(c) and os.access(c, os.X_OK):
+            return c
+    return None
+
+
+CLAUDE_SYSTEM = """You are a senior robotics/SLAM engineer acting as a live-coding interviewer and code reviewer \
+inside a local C++ practice judge. The candidate is preparing for a C++17 SLAM interview.
+
+Rules:
+- Allowed in solutions: C++17 standard library + Eigen only (no PCL, Sophus, Ceres).
+- Give feedback on the candidate's CURRENT code: correctness bugs, edge cases, complexity (time/space), \
+numerical issues, and C++ quality (const-correctness, copies, references, reserve, UB, naming).
+- Cite line numbers from the numbered code (e.g. "L23"). Show tiny snippets only for the specific fix.
+- Do NOT write a complete solution unless the candidate explicitly asks for one. Prefer pointing at the bug \
+and asking a probing question ("what happens when N = 1?").
+- Be concise, direct, and honest — no over-praise. Use short Markdown sections/bullets.
+- If the code has no obvious bugs, say so, then give 1-3 follow-up questions an interviewer would ask."""
+
+CLAUDE_MOCK = """
+MOCK INTERVIEW IN PROGRESS: behave strictly like the interviewer. Never write code or reveal the fix. \
+Answer only with clarifications, a nudge, or a probing question, as a real interviewer would."""
+
+
+def build_claude_prompt(body):
+    pid = body.get("id", "")
+    pdir = problem_dir(pid)
+    title, statement = "Scratchpad (free-form C++ with its own main())", ""
+    if pdir:
+        meta = read_json(pdir / "meta.json", {})
+        title = f"{meta.get('title', pid)} [{pid}, {meta.get('difficulty', '')}]"
+        st = pdir / "statement.md"
+        statement = st.read_text() if st.exists() else ""
+    elif pid != "scratchpad":
+        title = "No problem open (general question)"
+    code = str(body.get("code", ""))[:60_000]
+    numbered = "\n".join(f"{i + 1:4d}| {l}" for i, l in enumerate(code.split("\n"))) if code.strip() else "(no code)"
+
+    parts = [f"## Problem: {title}"]
+    if statement:
+        parts.append(statement[:20_000])
+    parts.append(f"## Candidate's current code\n```cpp\n{numbered}\n```")
+    last = body.get("last_result") or {}
+    if last.get("status"):
+        out = ANSI_RE.sub("", str(last.get("output", "")))[-6000:]
+        parts.append(f"## Latest judge result: {last['status']} ({last.get('mode', 'run')}, "
+                     f"{last.get('passed', 0)} passed / {last.get('failed', 0)} failed)\n```\n{out}\n```")
+    hist = [h for h in (body.get("history") or []) if isinstance(h, dict)][-10:]
+    if hist:
+        conv = "\n\n".join(f"{'Candidate' if h.get('role') == 'user' else 'You'}: {str(h.get('text', ''))[:4000]}"
+                           for h in hist)
+        parts.append(f"## Conversation so far\n{conv}")
+    parts.append(f"## Candidate's new message\n{str(body.get('question', '')).strip()[:8000]}")
+    system = CLAUDE_SYSTEM + (CLAUDE_MOCK if body.get("mock") else "")
+    return system, "\n\n".join(parts)
+
+
+def stream_claude(body, emit):
+    """Run `claude -p` with no tools and stream text deltas through emit(dict)."""
+    exe = find_claude()
+    if not exe:
+        return emit({"error": "Claude Code CLI not found. Install it or set CLAUDE_BIN=/path/to/claude."})
+    system, prompt = build_claude_prompt(body)
+    cmd = [exe, "-p", "--output-format", "stream-json", "--verbose", "--include-partial-messages",
+           "--tools", "", "--no-session-persistence", "--setting-sources", "", "--system-prompt", system]
+    if CLAUDE_MODEL:
+        cmd += ["--model", CLAUDE_MODEL]
+    cwd = BUILD / "claude"  # empty dir: no project context is picked up
+    cwd.mkdir(parents=True, exist_ok=True)
+    proc = subprocess.Popen(cmd, cwd=str(cwd), stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, text=True, bufsize=1)
+    killer = threading.Timer(CLAUDE_TIMEOUT, proc.kill)
+    killer.start()
+    got_text, final = False, None
+    try:
+        proc.stdin.write(prompt)
+        proc.stdin.close()
+        for line in proc.stdout:
+            try:
+                ev = json.loads(line)
+            except ValueError:
+                continue
+            if ev.get("type") == "stream_event":
+                e = ev.get("event", {})
+                if e.get("type") == "content_block_delta" and e.get("delta", {}).get("type") == "text_delta":
+                    got_text = True
+                    emit({"t": e["delta"]["text"]})
+            elif ev.get("type") == "result":
+                final = ev
+        proc.wait()
+    except (BrokenPipeError, ConnectionResetError):
+        proc.kill()
+        return
+    finally:
+        killer.cancel()
+    if final and final.get("is_error"):
+        return emit({"error": str(final.get("result") or "Claude returned an error.")})
+    if not got_text:
+        if final and final.get("result"):
+            emit({"t": final["result"]})
+        else:
+            err = (proc.stderr.read() or "").strip()[-1500:]
+            return emit({"error": err or f"claude exited with code {proc.returncode} (timeout {CLAUDE_TIMEOUT}s?)"})
+    emit({"done": True, "cost_usd": (final or {}).get("total_cost_usd"),
+          "duration_s": round(((final or {}).get("duration_ms") or 0) / 1000, 1)})
+
+
 # ---------------------------------------------------------------- HTTP
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *a, **kw):
@@ -251,6 +370,9 @@ class Handler(SimpleHTTPRequestHandler):
             return
         parts = [unquote(p) for p in path.split("/")[2:]]
         try:
+            if parts == ["claude", "status"]:
+                exe = find_claude()
+                return self._json({"available": bool(exe), "bin": exe or ""})
             if parts == ["catalog"]:
                 modules = read_json(PROBLEMS / "modules.json", {"tracks": []})
                 return self._json({"modules": modules, "problems": list_problems(), "progress": load_progress()})
@@ -340,6 +462,19 @@ class Handler(SimpleHTTPRequestHandler):
                 if ID_RE.match(pid) and f.exists():
                     f.unlink()
                 return self._json({"ok": True})
+            if path == "/api/claude":
+                if not str(body.get("question", "")).strip():
+                    return self._json({"error": "empty question"}, 400)
+                self.send_response(200)
+                self.send_header("Content-Type", "application/x-ndjson")
+                self.send_header("X-Accel-Buffering", "no")
+                self.end_headers()
+
+                def emit(obj):
+                    self.wfile.write((json.dumps(obj) + "\n").encode())
+                    self.wfile.flush()
+                stream_claude(body, emit)
+                return
             if path == "/api/term":
                 cmd = body.get("cmd", "")
                 if body.get("reset_cwd"):

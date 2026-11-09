@@ -27,6 +27,7 @@
       <span class="timer-icon">⏱</span><span id="timerText">00:00</span><span class="timer-target" id="timerTarget"></span>
     </div>
     <div class="mock-clock hidden" id="mockClock" title="Mock interview time remaining"></div>
+    <button class="btn ghost" id="claudeBtn" title="Ask Claude for feedback on your current code (Ctrl+I)">✦ Ask Claude</button>
     <button class="btn ghost" id="scratchBtn" title="Free-form C++ playground with its own main()">Scratchpad</button>
     <button class="btn accent" id="mockBtn">Mock Interview</button>
     <button class="icon-btn" id="themeBtn" title="Toggle theme">◐</button>
@@ -78,6 +79,28 @@
           <div id="termLog"></div>
           <div class="term-line"><span class="term-prompt" id="termPrompt">$</span><input id="termInput" spellcheck="false" autocomplete="off" /></div>
         </div>
+      </div>
+    </section>
+    <div class="gutter gutter-v hidden" data-target="claudePane" data-dir="rev" id="claudeGutter"></div>
+
+    <section class="pane claude-pane hidden" id="claudePane">
+      <div class="claude-head">
+        <span class="claude-title">✦ Ask Claude</span>
+        <span class="claude-ctx muted" id="claudeCtx"></span>
+        <div class="toolbar-spacer"></div>
+        <button class="icon-btn" id="claudeClear" title="Clear this conversation">🗑</button>
+        <button class="icon-btn" id="claudeClose" title="Close (Ctrl+I)">✕</button>
+      </div>
+      <div class="claude-log" id="claudeLog"></div>
+      <div class="claude-quick" id="claudeQuick">
+        <button class="chip" data-q="Review my current code like an interviewer: correctness, edge cases, complexity, and C++ quality.">Review my code</button>
+        <button class="chip" data-q="Why is my code failing the latest run? Point me at the bug without rewriting the whole thing.">Why is it failing?</button>
+        <button class="chip" data-q="What edge cases am I missing, and what's the time/space complexity of my approach?">Edge cases &amp; complexity</button>
+        <button class="chip" data-q="Give me one small hint for the next step. Don't give away the solution.">Small hint</button>
+      </div>
+      <div class="claude-input">
+        <textarea id="claudeInput" rows="3" placeholder="Ask about your code… (Enter to send, Shift+Enter for newline)"></textarea>
+        <button class="btn primary small" id="claudeSend">Send</button>
       </div>
     </section>
   </div>

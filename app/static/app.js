@@ -47,6 +47,9 @@ int main() {
     termIdx: -1,
     mock: LS.get("mock", null),
     busy: false,
+    lastResult: {},         // id -> latest judge result (sent to Claude as context)
+    claudeOpen: LS.get("claudeOpen", false),
+    claudeBusy: false,
   };
 
   // ------------------------------------------------------------------ API
@@ -70,13 +73,14 @@ int main() {
       langPrefix: "hljs language-",
     });
   }
-  function renderMD(src) {
+  function renderMD(src, opts = {}) {
     src = String(src || "");
     if (!window.marked) return `<pre>${esc(src)}</pre>`;
     const math = [];
     // keep code (fenced and inline) intact; extract math elsewhere
     const parts = src.split(/(```[\s\S]*?```|`[^`\n]*`)/g);
     for (let i = 0; i < parts.length; i += 2) {
+      if (opts.escapeHtml) parts[i] = parts[i].replace(/&/g, "&amp;").replace(/</g, "&lt;");
       parts[i] = parts[i]
         .replace(/\$\$([\s\S]+?)\$\$/g, (_, m) => { math.push([m, true]); return `MATHPH${math.length - 1}X`; })
         .replace(/\$([^\$\n]+?)\$/g, (_, m) => { math.push([m, false]); return `MATHPH${math.length - 1}X`; });
@@ -243,7 +247,7 @@ int main() {
         <li><b>Submit</b> (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Enter</kbd>) adds the <i>hidden</i> edge-case tests. Green means solved.</li>
         <li>Your code autosaves to <code>workspace/&lt;id&gt;.cpp</code>. The <b>Terminal</b> tab runs a real shell in the repo.</li>
         <li><b>Mock Interview</b> picks 3 problems against a countdown; hints and editorials are locked until you end it.</li>
-        <li>Ask Claude in your editor to <i>“review my solution to &lt;id&gt;”</i> for interviewer-style feedback.</li>
+        <li><b>✦ Ask Claude</b> (<kbd>Ctrl</kbd>+<kbd>I</kbd>) opens a side panel for feedback on your current code and latest run.</li>
       </ul></div>`;
     $$(".dash-card").forEach((c) => c.onclick = () => {
       const first = sortedProblems(c.dataset.mod)[0];
@@ -453,6 +457,7 @@ Use it to try snippets from the notes, or for "predict the output" experiments. 
       S.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => run("run"));
       S.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Enter, () => run("submit"));
       S.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => flushSave());
+      S.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyI, () => toggleClaude());
       resolveEditor();
     }, fallback);
   }
@@ -532,6 +537,8 @@ Use it to try snippets from the notes, or for "predict the output" experiments. 
 
   function renderResult(res, mode) {
     setChip(res.status);
+    S.lastResult[S.current.id] = { status: res.status, mode, passed: res.passed, failed: res.failed,
+      output: ((res.compile_output || "") + "\n" + (res.run_output || "")).slice(-8000) };
     const out = (res.compile_output ? res.compile_output + (res.run_output ? "\n" : "") : "") + (res.run_output || "");
     $("#cOutput").innerHTML = out.trim() ? ansiToHtml(out).replace(/(workspace\/[\w\-]+\.cpp):(\d+)/g, '<span class="ce-line" data-line="$2">$1:$2</span>') : '<span class="muted">(no output)</span>';
     $$("#cOutput .ce-line").forEach((s) => s.onclick = () => gotoLine(+s.dataset.line));
@@ -562,7 +569,7 @@ Use it to try snippets from the notes, or for "predict the output" experiments. 
       }
       if (res.status === "timeout") html += `<div class="callout">Your program ran longer than the time limit. Look for an infinite loop or deadlock. Tests run in a slow sanitizer build, so prefer the expected complexity.</div>`;
       if (scratch) html += `<div class="callout muted">Program output is in the <b>Output</b> tab.</div>`;
-      if (res.status === "accepted" && mode === "submit") html += `<div class="callout">🎉 Solved. Compare with the <b>Editorial</b> tab, or ask Claude for an interviewer-style review.</div>`;
+      if (res.status === "accepted" && mode === "submit") html += `<div class="callout">🎉 Solved. Compare with the <b>Editorial</b> tab, or open <b>✦ Ask Claude</b> for an interviewer-style review.</div>`;
     }
     $("#cResults").innerHTML = html;
     if (scratch && res.status !== "compile_error") showConsole("output");
@@ -717,6 +724,111 @@ Use it to try snippets from the notes, or for "predict the output" experiments. 
     $("#mClose").onclick = closeModal;
   }
 
+  // ------------------------------------------------------------------ Ask Claude
+  const claudeKey = () => "claude:" + (S.current ? S.current.id : "general");
+  const claudeMsgs = (key = claudeKey()) => LS.get(key, []);
+  const saveClaudeMsgs = (key, msgs) => LS.set(key, msgs.slice(-40));
+
+  function toggleClaude(on = !S.claudeOpen) {
+    S.claudeOpen = on; LS.set("claudeOpen", on);
+    $("#claudePane").classList.toggle("hidden", !on);
+    $("#claudeGutter").classList.toggle("hidden", !on);
+    $("#claudeBtn").classList.toggle("on", on);
+    if (on) { renderClaude(); setTimeout(() => $("#claudeInput").focus(), 0); }
+  }
+
+  function claudeMsgHtml(m) {
+    if (m.role === "user") return `<div class="claude-msg user">${esc(m.text)}</div>`;
+    if (m.role === "error") return `<div class="claude-msg error">${esc(m.text)}</div>`;
+    const meta = m.meta ? `<div class="claude-meta">${esc(m.meta)}</div>` : "";
+    return `<div class="claude-msg assistant md">${renderMD(m.text || "…", { escapeHtml: true })}${meta}</div>`;
+  }
+
+  function renderClaude() {
+    if (!S.claudeOpen) return;
+    const cur = S.current;
+    $("#claudeCtx").textContent = cur ? (cur.id === "scratchpad" ? "· scratchpad" : "· " + cur.data.meta.title) : "· general";
+    const msgs = claudeMsgs();
+    const log = $("#claudeLog");
+    log.innerHTML = msgs.length ? msgs.map(claudeMsgHtml).join("") : `<div class="claude-empty">
+      Claude sees the <b>problem statement</b>, your <b>current code</b> (with line numbers) and your <b>latest Run/Submit output</b>.
+      It won't see the hidden tests or the editorial, and it won't write the full solution unless you ask.
+      ${mockLocked() ? "<br><br><b>Mock interview in progress:</b> Claude acts strictly as the interviewer and only asks questions or nudges." : ""}
+      <br><br>Uses your local Claude Code login (<code>claude -p</code>).</div>`;
+    log.scrollTop = log.scrollHeight;
+    $$("#claudeQuick .chip").forEach((c) => (c.disabled = S.claudeBusy));
+    $("#claudeSend").disabled = S.claudeBusy;
+  }
+
+  async function askClaude(question) {
+    question = (question || "").trim();
+    if (!question || S.claudeBusy) return;
+    await flushSave();
+    const key = claudeKey();
+    const cur = S.current;
+    const isCode = cur && cur.data.meta.type !== "quiz" && S.editor;
+    const history = claudeMsgs(key).filter((m) => m.role !== "error").map((m) => ({ role: m.role, text: m.text }));
+    const msgs = [...claudeMsgs(key), { role: "user", text: question }, { role: "assistant", text: "" }];
+    saveClaudeMsgs(key, msgs);
+    S.claudeBusy = true; renderClaude();
+    const live = () => key === claudeKey() && S.claudeOpen;
+    const t0 = Date.now();
+    let text = "", raf = 0, fail = null, meta = "";
+    const paint = () => {
+      raf = 0; if (!live()) return;
+      const log = $("#claudeLog"), el = log.lastElementChild; if (!el) return;
+      const nearBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 80;
+      el.innerHTML = text ? renderMD(text, { escapeHtml: true }) : `<span class="spinner"></span>&nbsp; Thinking… ${Math.round((Date.now() - t0) / 1000)}s`;
+      if (nearBottom) log.scrollTop = log.scrollHeight;
+    };
+    const waitT = setInterval(() => { if (!text) paint(); }, 1000);
+    paint();
+    try {
+      const r = await fetch("/api/claude", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+        id: cur ? cur.id : "", code: isCode ? S.editor.getValue() : "", question, history,
+        last_result: cur ? S.lastResult[cur.id] : null, mock: !!mockLocked(),
+      }) });
+      if (!r.ok || !r.body) throw new Error((await r.json().catch(() => ({}))).error || r.statusText);
+      const reader = r.body.getReader(), dec = new TextDecoder();
+      let buf = "";
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        let nl;
+        while ((nl = buf.indexOf("\n")) >= 0) {
+          const line = buf.slice(0, nl); buf = buf.slice(nl + 1);
+          if (!line.trim()) continue;
+          let ev; try { ev = JSON.parse(line); } catch { continue; }
+          if (ev.t) { text += ev.t; if (!raf) raf = requestAnimationFrame(paint); }
+          if (ev.error) fail = ev.error;
+          if (ev.done) meta = `${ev.duration_s || Math.round((Date.now() - t0) / 1000)}s` + (ev.cost_usd ? ` · $${ev.cost_usd.toFixed(3)}` : "");
+        }
+      }
+    } catch (e) { fail = String(e.message || e); }
+    clearInterval(waitT);
+    const final = claudeMsgs(key);
+    final.pop();
+    if (text) final.push({ role: "assistant", text, meta });
+    if (fail) final.push({ role: "error", text: "Claude error: " + fail });
+    saveClaudeMsgs(key, final);
+    S.claudeBusy = false;
+    renderClaude();
+  }
+
+  function initClaude() {
+    const inp = $("#claudeInput");
+    const send = () => { const v = inp.value; if (!v.trim() || S.claudeBusy) return; inp.value = ""; askClaude(v); };
+    inp.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } });
+    $("#claudeSend").onclick = send;
+    $$("#claudeQuick .chip").forEach((c) => (c.onclick = () => askClaude(c.dataset.q)));
+    $("#claudeBtn").onclick = () => toggleClaude();
+    $("#claudeClose").onclick = () => toggleClaude(false);
+    $("#claudeClear").onclick = () => { if (S.claudeBusy) return; LS.set(claudeKey(), []); renderClaude(); };
+    toggleClaude(S.claudeOpen);
+    api("claude/status").then((r) => { if (r && r.available === false) $("#claudeBtn").title = "Claude Code CLI not found. Set CLAUDE_BIN to enable."; });
+  }
+
   // ------------------------------------------------------------------ modal / toast / theme
   function openModal(html) { $("#modalCard").innerHTML = html; $("#modal").classList.remove("hidden"); }
   function closeModal() { $("#modal").classList.add("hidden"); }
@@ -734,7 +846,8 @@ Use it to try snippets from the notes, or for "predict the output" experiments. 
       g.addEventListener("mousedown", (e) => {
         const target = $("#" + g.dataset.target); const startX = e.clientX, startW = target.getBoundingClientRect().width;
         g.classList.add("dragging"); document.body.style.userSelect = "none";
-        const mv = (ev) => { target.style.width = Math.max(180, startW + ev.clientX - startX) + "px"; };
+        const sign = g.dataset.dir === "rev" ? -1 : 1;
+        const mv = (ev) => { target.style.width = Math.max(180, startW + sign * (ev.clientX - startX)) + "px"; };
         const up = () => { g.classList.remove("dragging"); document.body.style.userSelect = ""; removeEventListener("mousemove", mv); removeEventListener("mouseup", up); };
         addEventListener("mousemove", mv); addEventListener("mouseup", up);
       });
@@ -750,7 +863,8 @@ Use it to try snippets from the notes, or for "predict the output" experiments. 
   }
 
   // ------------------------------------------------------------------ routing
-  function route() {
+  function route() { Promise.resolve(routeInner()).finally(renderClaude); }
+  function routeInner() {
     const h = decodeURIComponent(location.hash.slice(1));
     const [kind, arg] = h.split("/");
     $("#submitBtn").classList.remove("hidden");
@@ -765,7 +879,7 @@ Use it to try snippets from the notes, or for "predict the output" experiments. 
   // ------------------------------------------------------------------ boot
   async function boot() {
     applyTheme(LS.get("theme", "dark"));
-    initEditor(); initGutters(); initTerminal();
+    initEditor(); initGutters(); initTerminal(); initClaude();
     $("#search").addEventListener("input", renderSidebar);
     $("#brand").onclick = () => (location.hash = "#dash/" + S.track);
     $("#runBtn").onclick = () => run("run");
@@ -790,6 +904,7 @@ Use it to try snippets from the notes, or for "predict the output" experiments. 
       if (e.key === "Escape") closeModal();
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && !document.activeElement.closest?.(".monaco-editor")) { e.preventDefault(); run(e.shiftKey ? "submit" : "run"); }
       if ((e.ctrlKey || e.metaKey) && e.key === "`") { e.preventDefault(); showConsole("terminal"); }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i" && !document.activeElement.closest?.(".monaco-editor")) { e.preventDefault(); toggleClaude(); }
     });
     addEventListener("beforeunload", () => { if (S.saveTimer) flushSave(); });
     addEventListener("hashchange", route);

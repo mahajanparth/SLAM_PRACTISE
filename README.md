@@ -27,6 +27,7 @@ python3 app/server.py --port 8008
 | **Mock Interview** | 3 random problems against a 45/60-minute countdown. Hints and editorials stay locked until you end it, and you get a summary at the end |
 | **Terminal** | a real shell in the repo (`./run.sh`, `git`, `cmake`, …) |
 | **Scratchpad** | a free-form `main()` playground with the same flags and sanitizers |
+| **✦ Ask Claude** | a side panel that streams interviewer-style feedback on your *current* code and latest Run/Submit output (via your local `claude` CLI login) |
 
 <p>
   <img src="docs/screenshot-dashboard.png" width="49%" alt="Track dashboard" />
@@ -41,6 +42,7 @@ python3 app/server.py --port 8008
 | `Ctrl+Shift+Enter` | Submit (public + hidden tests) |
 | `Ctrl+S` | Save now (it also autosaves) |
 | `` Ctrl+` `` | Open the terminal |
+| `Ctrl+I` | Toggle the Ask Claude panel |
 | `/` | Search problems |
 
 ## Layout
@@ -89,3 +91,10 @@ Open the repo in Claude Code. [CLAUDE.md](CLAUDE.md) sets Claude up as a live in
 - `review my mock: <id>, <id>, <id>`: a debrief after a mock interview
 
 Scores and weak spots are tracked in [log/progress.md](log/progress.md).
+
+### In-app Ask Claude panel
+
+Click **✦ Ask Claude** (or press `Ctrl+I`) for a chat panel beside the editor. Each message sends the problem statement, your current code with line numbers, and your latest judge output to `claude -p`. Tools are disabled and nothing is persisted as a session. Claude doesn't see the hidden tests or the editorial, and during a mock interview it only nudges and asks questions. Conversations are kept per problem in the browser.
+
+- The server finds the CLI on `PATH` or in the VS Code extension. Set `CLAUDE_BIN=/path/to/claude` to override it.
+- Set `CLAUDE_MODEL=sonnet` (or similar) to pick a model. The default is your Claude Code default.
